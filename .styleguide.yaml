@@ -1,0 +1,575 @@
+# TC Phoenix Documentation Style Guide Configuration
+# Comprehensive style rules based on analysis of all 8 chapter examples
+# This file defines the style rules for automated checking
+
+# Document structure requirements for content organization
+document_structure:
+  # Table of contents requirements
+  table_of_contents:
+    required: false  # Optional - not all chapters need TOC
+    placement: "before_first_content"
+    title_format: "Table of Contents"
+
+  # Chapter structure requirements 
+  chapter_structure:
+    required_sections:
+      - "Overview"  # First section in all chapters
+    recommended_sections:
+      - "What You Will Learn"  # Learning objectives section
+
+# Content formatting rules based on observed patterns
+formatting:
+  # Heading standards observed across chapters
+  headings:
+    h1_style: "clean"  # No inline styles preferred
+    h2_style: "clean"
+    max_heading_level: 4
+    
+    # Avoid these heading patterns found in chapters
+    discouraged_patterns:
+      - 'style="font-size: 24.0px;letter-spacing: -0.01em;"'
+      - 'style="font-size: 16.0px;font-weight: bold;letter-spacing: -0.006em;"'
+    
+  # Text formatting standards - based on 160+ instances found
+  text:
+    # Discouraged inline styles found extensively in chapters
+    discouraged_inline_styles:
+      - "letter-spacing: 0.0px"  # Found 161 times across 6 files
+      - "font-size: 14.0px"      # Found 2 times across 2 files
+      - "color: rgb(23,43,77)"   # Found 49 times across 5 files
+      - "font-size: 24.0px;letter-spacing: -0.01em"
+      - "font-size: 16.0px;font-weight: bold;letter-spacing: -0.006em"
+    
+    # Consistent emphasis patterns observed
+    emphasis:
+      strong_for: ["Important warnings", "Key terms", "UI elements", "Action items"]
+      em_for: ["File paths", "Code references", "Technical terms", "Directory paths"]
+      code_for: ["Commands", "File names", "Parameters", "Script names"]
+
+  # List formatting patterns
+  lists:
+    consistent_bullet_style: true
+    proper_nesting: true
+    ordered_list_usage: "step_by_step_procedures"
+
+# Technical content standards observed in examples
+technical_content:
+  # KB reference formatting - Found 95 occurrences across 11 files
+  kb_references:
+    format: "KB-####"
+    link_required: true
+    portal_domains:
+      - "portal.nutanix.com"
+      - "nutanix.lightning.force.com"
+    patterns:
+      - '<a.*href=".*portal\.nutanix\.com.*kb.*">KB-\d+'
+      - '<a.*href=".*nutanix\.lightning\.force\.com.*Knowledge_Base.*">KB-\d+'
+    
+  # Version number consistency observed
+  version_numbers:
+    format: "X.Y.Z"
+    specific_versions_found:
+      - "7.3"   # Most common in examples
+      - "7.0"
+      - "6.8"
+      - "6.5"
+      - "5.9"   # Phoenix/Foundation versions
+      - "10.3"  # AHV versions
+  
+  # URL standards found in examples
+  urls:
+    nutanix_portal: "https://portal.nutanix.com"
+    salesforce: "https://nutanix.lightning.force.com"
+    confluence: "https://confluence.eng.nutanix.com"
+    rx_booking: "http://rx.corp.nutanix.com"
+
+# Content organization and callout standards
+content_organization:
+  # Information callout types and their usage
+  callout_usage:
+    info_callouts:
+      purpose: "Chapter overviews, tips, helpful context"
+      title_patterns:
+        - "What You Will Learn"
+        - "Tip"
+        - "Example"
+        - "Checkpoint"
+      usage_frequency: "very_high"  # Found in most chapters
+    
+    warning_callouts:
+      purpose: "Critical safety information, data loss warnings"
+      title_patterns:
+        - "Warning"
+        - "Critical Safety Information"
+        - "PLEASE READ"
+        - "Critical Safety Warning"
+      usage_frequency: "high"  # Found across multiple chapters
+      
+    tip_callouts:
+      purpose: "Best practices and recommendations"
+      title_patterns:
+        - "Tip"
+        - "Compatibility Best Practice"
+        - "Manual Menu Access"
+      usage_frequency: "medium"
+      
+    expandable_sections:
+      purpose: "Collapsible detailed sections, lab exercises"
+      title_required: true
+      usage_patterns:
+        - "Lab Exercise"
+        - "Prerequisites and Preparation"
+        - "Step-by-Step:"
+        - "Complete Guide"
+      usage_frequency: "very_high"  # Extensive use in chapters
+      
+    code_formatting:
+      purpose: "Code blocks and command examples"
+      common_languages:
+        - "bash"
+        - "text"
+        - "plain text"
+      preferred_themes:
+        - "Django"  # Preferred theme for readability
+
+# Content quality standards based on examples
+content_quality:
+  # Safety warnings requirements observed
+  safety_warnings:
+    required_for:
+      - "Data loss operations"
+      - "Cluster impact actions" 
+      - "Single-node restrictions"
+      - "CVM installation procedures"
+      - "Repair operations"
+    
+    must_include:
+      - "Clear risk description"
+      - "Specific consequences"
+      - "Prerequisites or conditions"
+      - "Support supervision requirements"
+
+  # Technical accuracy requirements
+  technical_accuracy:
+    version_consistency: true
+    kb_link_validation: true
+    command_syntax_validation: true
+    support_supervision_notes: true
+
+# Writing style and tone standards from Tech-Pubs and other guidelines
+writing_standards:
+  # Core writing principles from Tech-Pubs Writing Guidelines
+  fundamental_principles:
+    primary_goal: "communicate_clearly"  # The purpose of all writing is to communicate clearly
+    guidelines_flexibility: true  # Guidelines never meant to obstruct clear communication
+    
+  # Basic grammar principles from Tech-Pubs
+  grammar:
+    verb_tense: "simple_present"  # Use simple present tense - correct choice for technical documentation
+    voice: "active"               # Use active voice - subject performs the action
+    person: "second"              # Address reader directly with "you" (not "the end user")
+    
+    # Specific guidance from Tech-Pubs Writing Guidelines
+    verb_tense_details:
+      primary_tense: "simple_present"
+      avoid_future_contractions: true  # Avoid "won't" - can slip into future tense
+      avoid_complex_tenses: true      # Difficult for non-native speakers, leads to poor translations
+      exception_past_tense: "past_releases_and_test_results"  # Use simple past for past releases/results
+    
+    # Active voice requirements from Tech-Pubs
+    active_voice_requirements:
+      subject_performs_action: true  # Subject performs action, doesn't just receive it
+      avoid_missing_subjects: true   # Passive voice creates confusion about responsibility
+      clarify_responsibility: true   # Work with Engineering to determine what subject should be
+      examples:
+        wrong_passive: "The component is set back to the supported settings by SCMA"
+        right_active: "SCMA resets the component to the supported settings"
+        wrong_passive_2: "Traffic associated with the VM is monitored"
+        right_active_2: "Flow Network Security monitors the traffic associated with the VM"
+    
+    # Direct address requirements from Tech-Pubs
+    direct_address:
+      use_second_person: true  # Address writing directly to reader using "you"
+      avoid_third_person: true # Don't use "the end user" - use "you"
+      examples:
+        wrong: "The end user can customize these settings"
+        right: "You can customize these settings"
+    
+    # Patterns to avoid from all guidelines
+    avoid:
+      - "future_tense_contractions"  # From Tech-Pubs
+      - "complex_tenses"            # From Tech-Pubs - difficult for non-native speakers
+      - "passive_voice_excessive"   # From Tech-Pubs - creates confusion
+      - "first_person_plural"       # Avoid "we will", prefer "you will"
+      - "third_person_references"   # From Tech-Pubs - avoid "the end user"
+  
+  # Style resources from Tech-Pubs guidelines
+  approved_style_resources:
+    primary_resources:
+      - "Nutanix Brand Guidelines"
+      - "Nutanix Inclusive Language"
+      - "Microsoft Style Guide"
+      - "Global English Style Guide by John R. Kohl"
+      - "IBM Style Guide"
+      - "Chicago Manual of Style"
+    
+    additional_resources:
+      - "Annotated Bibliography"
+      - "Nutanix Glossary"
+      - "Acronyms reference"
+      - "Considerations Taxonomy"
+  
+  # Capitalization standards observed
+  capitalization:
+    titles_and_headings: "title_case"
+    chapter_titles: "title_case"
+    section_headers: "sentence_case_with_capitals"
+    lists: "capitalize_first_word"
+    steps: "capitalize_step_references"
+    
+  # Tone and style patterns from all guidelines
+  tone:
+    instructional: true
+    professional: true  
+    direct: true
+    supportive: true
+    technical_accuracy_focused: true
+    clear_communication_priority: true  # From Tech-Pubs: primary goal is clear communication
+
+# Command and code formatting standards observed
+code_standards:
+  # Command formatting patterns found
+  commands:
+    prompts_found:
+      - "nutanix@cvm$ "
+      - "nutanix@CVM:~$ "
+      - "nutanix@CVM:~/foundation/bin$ "
+      - "root@phoenix ~ # "
+      - "PS C:\\Users\\Administrator> "
+    
+    # Inline vs block rules observed
+    inline_code:
+      use_for: "short commands and quick references"
+      no_prompt: true
+      format: "code_tag"
+    
+    code_blocks:
+      use_for: "multi-line code, copy-paste scenarios, output examples"
+      include_prompt: true
+      proper_indentation: true
+      line_width: 80
+      
+  # File path formatting
+  file_paths:
+    format: "italics_or_code"
+    examples_found:
+      - "/home/nutanix/foundation/bin"
+      - "/home/nutanix/data/installer/"
+      - "/phoenix/installer.log"
+      - "~/data/logs/"
+
+# Training-specific content standards from training guidelines
+training_standards:
+  # Module naming conventions from training guidelines
+  module_naming:
+    naming_patterns:
+      init_sre: "Module_Name - init.SRE"  # Example: "Linux - init.SRE"
+      level_1: "Module_Name - Level 1"    # Example: "Calm - Level 1"  
+      level_2: "Module_Name - Level 2"    # Example: "Data Protection - Level 2"
+      level_3: "Module_Name - Level 3"    # Example: "Nutanix Files - Level 3"
+  
+  # Subpage naming conventions
+  subpage_naming:
+    format: "Topic_Name"  # Just the name of the topic
+    navigation_links:
+      required: true
+      text: "Proceed to the next section"
+      method: "hard_link_or_permanent_link"
+      dynamic_title_matching: true  # Use ctrl+k workflow for dynamic titles
+      workflow_steps:
+        - "Open the page you want to link to"
+        - "Type ctrl+k or press Insert Link shortcut"
+        - "Select Recently viewed section and choose target page"
+        - "Click Save"
+      benefits: "Link text updates if title of page changes"
+  
+  # Table of Contents requirements for training
+  table_of_contents:
+    required_for_all_modules: true
+    required_for_subpages: true
+    setup_instructions:
+      - "In edit mode, click Insert More Content"
+      - "Select Table of Contents macro"
+      - "Click Insert"
+      - "Add 'Table of Contents' in bold text above TOC macro"
+      - "Set maxLevel = 3 (optional)"
+      - "Select absoluteUrl (optional)"
+  
+  # Layout requirements for training modules  
+  layout_requirements:
+    use_available_templates: true
+    template_source: "Support Onboarding homepage - Space Tools - Content Tools"
+    available_templates:
+      - "Standard module template"
+      - "Labs Template"  # For adding labs separately
+    
+    # Content organization
+    content_alignment: "left_align"  # Left-align content on main page
+    required_sections:
+      - "Why do we need to know this?"
+      - "How does this [technology name] help me?"
+  
+  # Image guidelines specific to training
+  image_guidelines:
+    screenshot_requirements:
+      highlight_clicks: true  # Use arrows or boxes to highlight clicks
+      borders_required: true  # All images should have borders, especially white backgrounds
+      upload_method: "direct_to_confluence"  # Never link from external sources
+      
+    prohibited_practices:
+      external_linking: false  # Never link from nutanixbible, Wikipedia, Google, etc.
+      reason: "Links can be broken externally with no internal monitoring"
+      
+    local_copies:
+      keep_local_backups: true  # Especially for modified images
+      provide_to_trainer_team: true
+      
+    border_application:
+      method: "Select image and click Border"
+      especially_for: "Images with white backgrounds"
+  
+  # Code block standards for training
+  code_block_standards:
+    usage: "command_outputs_and_log_outputs"
+    courses: "init.SRE, L1 & L2 courses"
+    setup_process:
+      - "Copy command/log output"
+      - "Click + icon on editor toolbar"
+      - "Click Other macros"
+      - "Search for 'code block', select Code Block"
+      - "From Syntax highlighting dropdown, select Plain Text"
+      - "Select Django from theme dropdown"
+      - "Click Insert"
+      - "Paste command/log output in Code Block section"
+      - "Click Publish"
+    benefits: "Makes command-line and log info easier to read"
+  
+  # Command formatting within modules
+  command_formatting:
+    inline_commands:
+      color: "blue"  # Use blue color for command line info
+      font: "monospace"  # Use monospace font
+      combination: "blue_color_and_monospace"
+      
+    # Menu items formatting
+    menu_items:
+      format: "bold_text"  # Use bold text for menu items and instructions
+      
+  # PII and Asset Details Guidelines for Training
+  pii_guidelines:
+    prohibited_content:
+      personal_info:
+        - "Names or email addresses of people"
+        - "IP Addresses, Serial Numbers, hostnames"
+        - "Real asset details in text, logs, screenshots"
+      
+    allowed_content:
+      - "Slack Channels and Email Distribution Lists"
+      
+    acceptable_generalizations:
+      command_prompts:
+        - "nutanix@cvm:~$"
+        - "root@cvm:~#"
+        - "nutanix@cvm:x.x.x.123:~$"  # Masked IP
+        - "root@AHV#"
+        - "12SMxxxxxxxx"  # Masked serial numbers
+        - "nutanix@PCVM:~$"
+        - "nutanix@FSVM:~$"
+        - "user@linux:~$"
+        - "PS C:\\>"
+      formatting: "monospace_and_blue_color"  # Same as command formatting
+      
+    image_guidelines:
+      avoid_where_possible: true  # Reproducing environments may not be feasible
+      blurring_tools:
+        - "facepixelizer.com"
+        - "offline_screenshot_editors"
+      text_alternative: "Problem signatures should be called out in text for searchability"
+
+# Phoenix-specific technical patterns
+phoenix_specific:
+  # Common procedures found
+  procedures:
+    iso_creation: "detailed_step_by_step"
+    installer_navigation: "phase_by_phase_breakdown"
+    troubleshooting: "expand_sections_with_details"
+    
+  # Technical terminology consistency
+  terminology:
+    consistent_terms:
+      - "Phoenix"          # Not "phoenix"
+      - "Controller Virtual Machine" # Or "CVM"
+      - "Nutanix Portal"   # Not "portal"
+      - "Foundation"       # Specific to Foundation software
+      - "AOS"             # Acropolis Operating System
+      - "AHV"             # Acropolis Hypervisor
+    
+    # Specific Phoenix terms
+    phoenix_terms:
+      - "Phoenix Installer"
+      - "Rescue Shell"
+      - "Phoenix Shell"
+      - "Installer Menu"
+      - "Phoenix ISO"
+
+# Image and media standards observed
+media_standards:
+  images:
+    format: "ri:attachment or ri:url"
+    sizing: "ac:width or ac:height attributes"
+    alt_text: "required_for_accessibility"
+    
+  # Image patterns found
+  attachment_patterns:
+    - '<ri:attachment ri:filename="*.png"/>'
+    - '<ri:url ri:value="https://confluence.eng.nutanix.com:8443/download/attachments/*"/>'
+
+# Navigation and linking standards
+navigation:
+  # Internal linking standards
+  internal_links:
+    use_descriptive_text: true
+    maintain_link_accuracy: true
+    dynamic_title_matching: true  # Use dynamic linking methods
+    
+  # External linking standards
+  external_links:
+    nutanix_kb: "portal.nutanix.com/kb/*"
+    salesforce_kb: "nutanix.lightning.force.com/lightning/r/Knowledge_Base__kav/*"
+    nutanix_docs: "portal.nutanix.com/page/documents/*"
+    
+    # KB-specific linking requirements
+    kb_linking_standards:
+      format: "KB-####"  # Use hyphen between KB and number
+      link_required: true
+      descriptive_text: true  # Use "KB-4944" not "click here"
+      external_only_for_external: true  # External articles must link to external resources only
+      portal_format: "https://portal.nutanix.com/kb/[KB number]"
+      dynamic_urls: true  # Use dynamic URLs for latest document versions
+    
+  # Navigation element standards
+  navigation_elements:
+    chapter_navigation: true
+    end_of_section_links: "Proceed to the next section"
+    text_patterns:
+      - "Proceed to Chapter X:"
+      - "Proceed to Next Section"
+
+# Quality assurance patterns
+quality_assurance:
+  # Lab exercises structure (from chapter 1)
+  lab_exercises:
+    structure: "expand_sections"
+    numbering: "sequential"
+    answer_sections: "collapsible"
+    validation_points: "checkpoint_macros"
+    
+  # Assessment patterns
+  assessments:
+    completion_tracking: true
+    external_links: "learning_academy"
+    
+  # Resource sections
+  resources:
+    slack_channels: "specified"
+    kb_references: "linked"
+    documentation_links: "portal_links"
+
+# Consistency checks based on examples
+consistency:
+  # Cross-file consistency observed
+  terminology:
+    consistent_across_chapters:
+      - "Phoenix"
+      - "CVM" 
+      - "AOS"
+      - "Nutanix Portal"
+      - "Foundation"
+  
+  # Structural consistency
+  structure:
+    chapter_opening: "overview_then_learning_objectives"
+    navigation: "button_at_end"
+    layout: "ac:layout_structure"
+
+# Error patterns to detect and fix
+error_patterns:
+  # Common issues found in examples
+  inline_styles:
+    severity: "warning"
+    patterns:
+      - "letter-spacing: 0.0px"
+      - "font-size: 14.0px" 
+      - "color: rgb(23,43,77)"
+      
+  # Structure issues
+  structure_issues:
+    severity: "error"
+    patterns:
+      - "missing_ac_layout"
+      - "missing_toc"
+      - "missing_chapter_overview"
+
+# Automated checks configuration
+automation:
+  # Pre-commit checks
+  pre_commit:
+    enabled: true
+    severity_levels:
+      - "error"    # Blocks commit
+      - "warning"  # Allows commit with notice
+      - "info"     # Informational only
+  
+  # Check categories based on analysis
+  check_categories:
+    structure: "error"
+    inline_styles: "warning"
+    kb_references: "warning"
+    terminology: "info"
+    content_quality: "warning"
+    confluence_macros: "error"
+
+# Exclusions for special cases
+exclusions:
+  # Files to skip
+  excluded_files:
+    - "*.md"
+    - "*.txt"
+    - ".git/*"
+    - "*DRAFT*"  # Draft files may have different standards
+  
+  # Rules to skip for specific patterns
+  rule_exceptions:
+    legacy_formatting:
+      - "chapter1-training-homepage.xml"  # May have different structure
+
+# Error messages and guidance
+messages:
+  structure_errors:
+    missing_layout: "All chapters must use ac:layout structure for consistency"
+    missing_toc: "Table of Contents is required at the beginning of each chapter"
+    missing_overview: "Chapter overview with learning objectives is required"
+  
+  formatting_warnings:
+    inline_styles: "Remove inline styles - found extensive use of letter-spacing: 0.0px and similar patterns"
+    inconsistent_emphasis: "Use consistent formatting for similar content types"
+  
+  content_warnings:
+    kb_references: "KB references must be properly linked - found 95 KB references across chapters"
+    version_consistency: "Version number format should be consistent (X.Y.Z pattern)"
+    terminology: "Use consistent Phoenix-specific terminology"
+    
+  quality_suggestions:
+    expand_usage: "Consider using expand macros for complex procedures (heavily used in examples)"
+    warning_macros: "Use warning macros for safety-critical information"
+    info_macros: "Use info macros for learning objectives and helpful context"

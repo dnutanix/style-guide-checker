@@ -1,0 +1,506 @@
+<ac:layout>
+  <ac:layout-section ac:type="single">
+    <ac:layout-cell>
+      <h1>Overview</h1>
+      <p>This chapter provides comprehensive guidance on creating Phoenix ISO images for Nutanix cluster recovery and maintenance operations. You'll learn multiple methods for generating bootable Phoenix ISOs, from using Controller Virtual Machines (CVMs) to downloading vanilla versions from the portal.</p>
+      <ac:structured-macro ac:macro-id="chapter-overview" ac:name="info" ac:schema-version="1">
+        <ac:parameter ac:name="title">What You Will Learn</ac:parameter>
+        <ac:rich-text-body>
+          <p>By the end of this chapter, you will be able to:</p>
+          <ul>
+            <li>
+              <strong>Understand Phoenix ISO creation methods</strong> - Learn when and why to create Phoenix ISOs for Nutanix cluster recovery</li>
+            <li>
+              <strong>Prepare your environment</strong> - Set up prerequisites and verify compatibility requirements before creating ISOs</li>
+            <li>
+              <strong>Create Phoenix ISOs using a CVM</strong> - Follow step-by-step instructions to generate bootable ISO images with AOS and hypervisor components</li>
+            <li>
+              <strong>Download and manage ISOs</strong> - Learn how to transfer, verify, and clean up Phoenix ISOs after creation</li>
+            <li>
+              <strong>Explore alternative methods</strong> - Understand how to download vanilla Phoenix ISOs from the portal or use Foundation VMs</li>
+          </ul>
+        </ac:rich-text-body>
+      </ac:structured-macro>
+      <h1>
+        <span>Important Notes Before You Begin</span>
+      </h1>
+      <p>
+        <strong>Boot Drive Replacement:</strong> If you are attempting to repair a host following a boot drive replacement, it is recommended to follow the appropriate Repair Boot Disk procedure for your node model and type documented on the Nutanix Support Portal &gt; <a href="https://portal.nutanix.com/page/documents/list?type=hardware">Hardware Replacement Documentation</a>. If you encounter errors during the Repair Boot Disk procedure, please see <a href="https://portal.nutanix.com/kb/5013">KB-5013</a> for troubleshooting steps. Creating a Phoenix Optical Disk Image (ISO) manually should only be done as a last resort in the instances where all other methods of recovery have been attempted.</p>
+      <p>
+        <strong>Compatibility Requirements:</strong> Each AOS and Hypervisor release will have a <strong>minimum version of Foundation</strong> required to install it. Similarly, each new hardware model release will begin being supported with a specific Foundation version. If you try to image a node with Phoenix ISO created on a CVM running a version of Foundation that is below the minimum required for that hardware model or software version, you are likely to see a failure at some stage of the workflow.</p>
+      <p>Make sure that the Foundation software version on the cluster where you are creating the Phoenix image is newer than the AOS or Hypervisor software versions you have included. If it is older, upgrade Foundation to the latest compatible version before creating the Phoenix ISO. Use the Release Notes on the Nutanix Portal as a guide to finding out when a particular Nutanix software was released.</p>
+      <p>
+        <strong>Pre-existing ISOs:</strong> If you need a Phoenix ISO containing a specific version of AOS together with its matching AHV software, check Support's Amazon S3 repository to see if they have a copy you can download. These are stored in directory "Amazon S3 &gt; ntnx-portal / phoenix-builds". See <a href="http://portal.nutanix.com/kb/2430">KB-2430</a> for access instructions.</p>
+      <h1>
+        <span style="font-size: 24.0px;letter-spacing: -0.01em;"> <ac:inline-comment-marker ac:ref="ce235f2b-99fe-4fa7-9957-647147514f2c">Using a Controller Virtual Machine (CVM) to Create Phoenix</ac:inline-comment-marker> </span>
+      </h1>
+      <ac:structured-macro ac:macro-id="expand-prerequisites" ac:name="expand" ac:schema-version="1">
+        <ac:parameter ac:name="title">Prerequisites and Preparation</ac:parameter>
+        <ac:rich-text-body>
+          <h2>Before You Begin</h2>
+          <ol>
+            <li>Before creating a Phoenix ISO, consider upgrading the Foundation software on your cluster to the latest version. This will help you avoid bugs and give you the highest chance of success in your operation.</li>
+            <li>
+              <p>Stage the following files onto a CVM in your cluster, based on your specific need:</p>
+              <ac:structured-macro ac:macro-id="d9dd4566-8cc1-4e49-8365-abceae9b46d8" ac:name="tip" ac:schema-version="1">
+                <ac:rich-text-body>
+                  <p>The software you need may be already on a CVM in your cluster. Check in these directories before downloading:</p>
+                  <p>Location of AHV Binary &amp; Metadata File packaged with AOS (versions AOS 6.7.x and earlier ONLY)<br/>/home/nutanix/data/installer/el*/ahv/</p>
+                  <p>Locations of Other Binaries:</p>
+                  <p>/home<br/>/home/nutanix/data/installer/&lt;hypervisor&gt;/<br/>/home/nutanix/foundation/isos/<br/>/home/nutanix/software_downloads/hypervisor/</p>
+                  <p>
+                    <br/>
+                  </p>
+                  <p>
+                    <strong>You can download AHV Installer ISO files for all recent releases on the <a href="https://portal.nutanix.com/page/downloads?product=ahv">Nutanix Portal</a>. </strong>
+                  </p>
+                  <p>
+                    <strong>Check <a href="http://portal.nutanix.com/kb/3523">KB-3523</a> </strong> <strong> for S3 links to older AHV ISOs.</strong>
+                  </p>
+                </ac:rich-text-body>
+              </ac:structured-macro>
+              <p>
+                <br/>
+              </p>
+            </li>
+            <li>
+              <span style="color: rgb(0,0,0);">Verify that you have a CVM with at least 13GB available in the</span> <em style="text-align: left;"> <span>/home</span> </em> <span style="color: rgb(0,0,0);"> <span>partition to create the ISO with the AOS bundle or at least 15.5GB with the hypervisor. Use the CVM with the most available space if possible.<br/>
+                </span> </span>
+              <ac:structured-macro ac:macro-id="19f05258-07c0-41ab-9395-54552f684c0b" ac:name="noformat" ac:schema-version="1">
+                <ac:plain-text-body><![CDATA[nutanix@cvm$ allssh df -h /home]]></ac:plain-text-body>
+              </ac:structured-macro>
+              <span style="color: rgb(0,0,0);"> If there's not enough space in the<span> <em style="text-align: left;">/home</em> <span style="color: rgb(0,0,0);"> <span>partition, an alternative is to create a<span> <em style="text-align: left;">/tmp</em> <span style="color: rgb(0,0,0);"> <span>directory on one of the Solid State Drives (SSDs) and use the set switch<span> <strong style="text-align: left;"> <code>--temp-dir</code> </strong> <span style="color: rgb(0,0,0);"> <span>to point to it.</span> <strong style="text-align: left;"> <span>Important:</span> </strong> <span style="color: rgb(0,0,0);"> <span>Remove the temporary directory on the SSD afterwards, as it's not removed automatically. Follow step 6 in Creating ISOs on a CVM process below.</span> </span> </span> </span> </span> </span> </span> </span> </span>
+                </span>
+              </span>
+            </li>
+            <li>
+              <span style="color: rgb(0,0,0);"> <span style="color: rgb(0,0,0);">Identify the target disk using<span> <strong style="text-align: left;"> <code>df -h.</code> </strong> <span>Look for "<em style="text-align: left;">/home/nutanix/data/stargate-storage/disks/"</em> <span>mount path.<br/>
+                      </span> </span> </span> </span> </span>
+              <ac:structured-macro ac:macro-id="a4e59df2-0850-4af8-b405-2d0746ccae9a" ac:name="noformat" ac:schema-version="1">
+                <ac:plain-text-body><![CDATA[nutanix@CVM:~$ df -h
+Filesystem      Size  Used Avail Use% Mounted on
+devtmpfs         16G     0   16G   0% /dev
+tmpfs           512M  100K  512M   1% /dev/shm
+tmpfs            16G  496K   16G   1% /run
+tmpfs            16G     0   16G   0% /sys/fs/cgroup
+/dev/sda2       9.8G  6.5G  3.2G  67% /
+/dev/loop1      238M  2.7M  219M   2% /tmp
+/dev/loop0      843M   82M  737M  10% /var
+/dev/sda3        40G   18G   21G  47% /home
+/dev/loop2      974M  268M  680M  29% /var/log
+/dev/loop3      140M   29M  107M  22% /var/log/audit
+tmpfs           3.2G     0  3.2G   0% /run/user/2000
+tmpfs           3.2G  4.0K  3.2G   1% /run/user/1000
+/dev/sdc1       7.3T  1.8G  7.2T   1% /home/nutanix/data/stargate-storage/disks/VY33L8MM
+/dev/sdb1       7.3T  1.8G  7.2T   1% /home/nutanix/data/stargate-storage/disks/VY33JN5M
+/dev/sda4       3.4T  105G  3.2T   4% /home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650]]></ac:plain-text-body>
+              </ac:structured-macro>
+            </li>
+            <ol>
+              <li>
+                <span style="color: rgb(0,0,0);">Create the directory on the SSD:<br/>
+                </span>
+                <ac:structured-macro ac:macro-id="567b41b7-2cf5-4b13-b66f-071596952d92" ac:name="noformat" ac:schema-version="1">
+                  <ac:plain-text-body><![CDATA[nutanix@cvm$ mkdir <path_to_ssd>/tmp]]></ac:plain-text-body>
+                </ac:structured-macro>
+              </li>
+              <li>
+                <span style="color: rgb(0,0,0);">For example:<br/>
+                </span>
+                <ac:structured-macro ac:macro-id="b5419b12-49f9-414f-a367-01721515d685" ac:name="noformat" ac:schema-version="1">
+                  <ac:plain-text-body><![CDATA[nutanix@cvm$ mkdir /home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp]]></ac:plain-text-body>
+                </ac:structured-macro>
+              </li>
+              <li>
+                <span style="color: rgb(0,0,0);">Switch value for the example above:<br/>
+                </span>
+                <ac:structured-macro ac:macro-id="6f4057f8-d7c5-472f-b67c-f749569bdf4f" ac:name="noformat" ac:schema-version="1">
+                  <ac:plain-text-body><![CDATA[--temp-dir=/home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp]]></ac:plain-text-body>
+                </ac:structured-macro>
+              </li>
+            </ol>
+            <li>
+              <span style="color: rgb(0,0,0);">Use the below command to create an AOS bundle inside directory<span> <em style="text-align: left;">/home/nutanix/foundation/nos</em> , which will be used during the Phoenix ISO generation (necessary if no AOS bits are downloaded).<br/>
+                </span> </span>
+              <ac:structured-macro ac:macro-id="2855731e-cacc-44cf-8be5-ab51349a1fa4" ac:name="noformat" ac:schema-version="1">
+                <ac:plain-text-body><![CDATA[nutanix@cvm$ tar -cvzf /home/nutanix/foundation/nos/$(< /etc/nutanix/release_version).tar.gz -C ~/data/installer/ $(< /etc/nutanix/release_version) --transform="s:^$(< /etc/nutanix/release_version)/:install/:" --show-transformed-names]]></ac:plain-text-body>
+              </ac:structured-macro>
+            </li>
+          </ol>
+        </ac:rich-text-body>
+      </ac:structured-macro>
+      <ac:structured-macro ac:macro-id="expand-iso-creation" ac:name="expand" ac:schema-version="1">
+        <ac:parameter ac:name="title">Step-by-Step: Creating Phoenix ISOs</ac:parameter>
+        <ac:rich-text-body>
+          <h2>Creating ISOs on a CVM</h2>
+          <ac:structured-macro ac:macro-id="eddd5173-1696-4f68-9362-9c15b23de611" ac:name="warning" ac:schema-version="1">
+            <ac:rich-text-body>
+              <p>Unlike Nutanix NX- platforms, Original Equipment Manufacturer (OEM's) like Dell and others use vendor-specific binaries for their hypervisors. Make sure you are staging the correct version of the software (and the exact same build) or else you will encounter a failure</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <ol>
+            <li>
+              <span style="font-size: 14.0px;letter-spacing: 0.0px;">If you plan to install a hypervisor, create the following directory (unless it's already present) and copy your hypervisor (AHV, ESXi or HyperV) ISO(s) into it using WinSCP or your client of choice.</span>
+              <ac:structured-macro ac:macro-id="3f3deba3-4192-4f6d-8c46-79ca4038f808" ac:name="noformat" ac:schema-version="1">
+                <ac:plain-text-body><![CDATA[nutanix@cvm$ mkdir /home/nutanix/foundation/tmp]]></ac:plain-text-body>
+              </ac:structured-macro>
+            </li>
+            <li>
+              <span style="color: rgb(0,0,0);">Change to the following directory:</span>
+              <ac:structured-macro ac:macro-id="30d1e586-02e4-4c3b-9566-1fe4f4d8ef14" ac:name="noformat" ac:schema-version="1">
+                <ac:plain-text-body><![CDATA[nutanix@cvm$ cd /home/nutanix/foundation/bin]]></ac:plain-text-body>
+              </ac:structured-macro>
+            </li>
+            <li>
+              <span style="color: rgb(0,0,0);">Create the bundle with the desired contents. To create the bundle on an SSD, use the switch </span> <strong style="text-align: left;"> <code>--temp-dir=/home/nutanix/data/stargate-storage/disks/[DISK_SERIAL]/tmp</code> <span> </span>
+              </strong> <span style="color: rgb(0,0,0);">described in the preparation steps above. Remember to delete the bundle, once you are done with it.<br/>
+              </span>
+              <ac:structured-macro ac:macro-id="c975625e-362c-47aa-97a1-c6508c07ac57" ac:name="tip" ac:schema-version="1">
+                <ac:rich-text-body>
+                  <p>"el*" in the KVM path should be replaced with the actual directory name when being put into the <code>
+            <strong>./generate_iso</strong>
+          </code> command. The actual directory name will vary by cluster.</p>
+                </ac:rich-text-body>
+              </ac:structured-macro>
+              <p>Use this command to find the actual directory name that you will put into the ./generate_iso command:</p>
+              <ac:structured-macro ac:macro-id="56cd4df3-b874-4f69-a5c7-3ee8417c1f91" ac:name="noformat" ac:schema-version="1">
+                <ac:plain-text-body><![CDATA[nutanix@cvm$ ls /home/nutanix/data/installer]]></ac:plain-text-body>
+              </ac:structured-macro>
+              <p style="text-align: left;">Example:</p>
+              <ac:structured-macro ac:macro-id="8a1167be-aeba-497a-b42b-631a290cbd62" ac:name="noformat" ac:schema-version="1">
+                <ac:plain-text-body><![CDATA[nutanix@cvm$ ls /home/nutanix/data/installer
+el8.5-release-ganges-7.3-stable-403c2537de51674979c3b35300abff1a7566ac8a]]></ac:plain-text-body>
+              </ac:structured-macro>
+              <ac:structured-macro ac:macro-id="95c40f1f-35d7-44ef-a1b7-4c6351db4c4c" ac:name="tip" ac:schema-version="1">
+                <ac:rich-text-body>
+                  <p>
+                    <strong>In AOS 6.8 and above, the tar bundle will no longer include the AHV ISO inside the installer directory. Instead, the AHV ISO must first be uploaded to the CVM. Support can also provide a phoenix ISO that includes the AHV bundle</strong>
+                  </p>
+                  <strong> </strong>
+                </ac:rich-text-body>
+              </ac:structured-macro>
+              <ol>
+                <li>
+                  <strong style="text-align: left;">Phoenix ISO with AOS bundle:<span> </span>
+                  </strong> <span style="color: rgb(0,0,0);">Use the below command to generate the Phoenix ISO with AOS bundle.<br/>
+                  </span>
+                  <ac:structured-macro ac:macro-id="28bf0998-abea-4dbb-9463-e92a09d3adbf" ac:name="noformat" ac:schema-version="1">
+                    <ac:plain-text-body><![CDATA[nutanix@CVM:~/foundation/bin$ ./generate_iso phoenix --aos-package=/home/nutanix/foundation/nos/<AOS bundle created in step 5 tar.gz> --temp-dir=/home/nutanix/data/stargate-storage/disks/[DISK_SERIAL]/tmp]]></ac:plain-text-body>
+                  </ac:structured-macro>
+                  <ac:structured-macro ac:macro-id="24bb9425-9982-4065-a84e-8a002131e5cc" ac:name="code" ac:schema-version="1">
+                    <ac:parameter ac:name="theme">RDark</ac:parameter>
+                    <ac:parameter ac:name="title">Example</ac:parameter>
+                    <ac:plain-text-body><![CDATA[nutanix@CVM:~/foundation/bin$ /generate_iso phoenix --aos-package=/home/nutanix/foundation/nos/el8.5-release-ganges-7.3-stable-403c2537de51674979c3b35300abff1a7566ac8a.tar.gz --temp-dir=/home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp
+-bash: /generate_iso: No such file or directory
+nutanix@CVM:~/foundation/bin$ ./generate_iso phoenix --aos-package=/home/nutanix/foundation/nos/el8.5-release-ganges-7.3-stable-403c2537de51674979c3b35300abff1a7566ac8a.tar.gz --temp-dir=/home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp
+2025-07-10 17:47:42,485 generate_iso INFO Copying phoenix files to /home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp/cb8542af-778c-46d5-83fc-53db6e0d6b2f
+2025-07-10 17:47:43,480 generate_iso INFO Phoenix will run in squashfs mode.
+2025-07-10 17:47:43,480 generate_iso INFO Copying phoenix updates to /home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp/cb8542af-778c-46d5-83fc-53db6e0d6b2f
+2025-07-10 17:47:43,489 foundation.phoenix_prep INFO Foundation-layouts egg None doesn't exist
+2025-07-10 17:47:43,490 foundation.phoenix_prep DEBUG Injecting tartarus-1.20.0-2a2040b0-py2.7.tar.gz to phoenix
+2025-07-10 17:47:43,510 foundation.phoenix_prep DEBUG Injecting phorest-phoenix-1.1.2-2617d9e.tgz to phoenix
+2025-07-10 17:47:43,526 generate_iso INFO Adding hypervisor drivers package
+2025-07-10 17:47:59,217 driver_utils.package_utils INFO Created drivers package at /home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp/cb8542af-778c-46d5-83fc-53db6e0d6b2f/images/driver_package.tar.gz
+2025-07-10 17:47:59,218 generate_iso INFO Copying the AOS from /home/nutanix/foundation/nos/el8.5-release-ganges-7.3-stable-403c2537de51674979c3b35300abff1a7566ac8a.tar.gz to /home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp/cb8542af-778c-46d5-83fc-53db6e0d6b2f/images/svm
+2025-07-10 17:48:08,433 generate_iso INFO Unzipping AOS /home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp/cb8542af-778c-46d5-83fc-53db6e0d6b2f/images/svm/el8.5-release-ganges-7.3-stable-403c2537de51674979c3b35300abff1a7566ac8a.tar.gz
+2025-07-10 17:49:04,174 generate_iso INFO Preparing phoenix iso in Installer mode with timeout 1
+2025-07-10 17:49:22,804 generate_iso INFO phoenix-5.9_AOS-x86_64.iso generated in /home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp/
+2025-07-10 17:49:22,804 generate_iso INFO Cleaning up
+2025-07-10 17:49:23,363 generate_iso INFO Done]]></ac:plain-text-body>
+                  </ac:structured-macro>
+                  <span style="color: rgb(0,0,0);"> <br/>
+                  </span>
+                </li>
+                <li>
+                  <strong style="text-align: left;">Phoenix ISO with hypervisor: </strong> <span style="color: rgb(0,0,0);">Perform the following commands to bundle Phoenix with a hypervisor. (Note: This will not include the installed AOS into the bundle Phoenix Bundle). The following commands create the ISO file in<span> <em style="text-align: left;">/home/nutanix/data/stargate-storage/disks/[DISK_SERIAL]/tmp/</em> <span style="color: rgb(0,0,0);">. <br/>
+                      </span> </span>
+                  </span>
+                  <ac:structured-macro ac:macro-id="833a9ddb-67a3-4908-9518-2618b7b36450" ac:name="noformat" ac:schema-version="1">
+                    <ac:plain-text-body><![CDATA[./generate_iso phoenix --kvm=<kvm-path> --temp-dir=/home/nutanix/data/stargate-storage/disks/[DISK_SERIAL]/tmp]]></ac:plain-text-body>
+                  </ac:structured-macro>
+                  <ac:structured-macro ac:macro-id="921a2ce7-3cef-4c5c-bbe6-1156754ded26" ac:name="code" ac:schema-version="1">
+                    <ac:parameter ac:name="theme">RDark</ac:parameter>
+                    <ac:parameter ac:name="title">Example</ac:parameter>
+                    <ac:plain-text-body><![CDATA[nutanix@CVM:~/foundation/bin$ ./generate_iso phoenix --kvm=/home/nutanix/foundation/tmp/AHV-DVD-x86_64-10.3-422.iso  --temp-dir=/home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp
+2025-07-10 18:05:10,181 generate_iso INFO Copying phoenix files to /home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp/a10ec3f7-6600-4ca4-9956-ac98bc359875
+2025-07-10 18:05:10,517 generate_iso INFO Phoenix will run in squashfs mode.
+2025-07-10 18:05:10,518 generate_iso INFO Copying phoenix updates to /home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp/a10ec3f7-6600-4ca4-9956-ac98bc359875
+2025-07-10 18:05:10,524 foundation.phoenix_prep INFO Foundation-layouts egg None doesn't exist
+2025-07-10 18:05:10,524 foundation.phoenix_prep DEBUG Injecting tartarus-1.20.0-2a2040b0-py2.7.tar.gz to phoenix
+2025-07-10 18:05:10,530 foundation.phoenix_prep DEBUG Injecting phorest-phoenix-1.1.2-2617d9e.tgz to phoenix
+2025-07-10 18:05:10,535 generate_iso INFO Adding hypervisor drivers package
+2025-07-10 18:05:23,691 driver_utils.package_utils INFO Created drivers package at /home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp/a10ec3f7-6600-4ca4-9956-ac98bc359875/images/driver_package.tar.gz
+2025-07-10 18:05:23,691 generate_iso INFO Copying the hypervisor to phoenix
+2025-07-10 18:05:24,851 generate_iso INFO Preparing phoenix iso in Installer mode with timeout 1
+2025-07-10 18:05:29,092 generate_iso INFO phoenix-5.9-kvm-x86_64.iso generated in /home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp/
+2025-07-10 18:05:29,092 generate_iso INFO Cleaning up
+2025-07-10 18:05:29,994 generate_iso INFO Done]]></ac:plain-text-body>
+                  </ac:structured-macro>
+                  <ac:structured-macro ac:macro-id="3c8376f6-2fd4-4278-9018-1e78d389445c" ac:name="noformat" ac:schema-version="1">
+                    <ac:plain-text-body><![CDATA[./generate_iso phoenix --esx=<esx-path> --temp-dir=/home/nutanix/data/stargate-storage/disks/[DISK_SERIAL]/tmp]]></ac:plain-text-body>
+                  </ac:structured-macro>
+                  <ac:structured-macro ac:macro-id="2ce9a520-7b07-471b-9923-4327bd9a1eb6" ac:name="code" ac:schema-version="1">
+                    <ac:parameter ac:name="theme">RDark</ac:parameter>
+                    <ac:parameter ac:name="title">Example</ac:parameter>
+                    <ac:plain-text-body><![CDATA[nutanix@CVM:~/foundation/bin$ ./generate_iso phoenix  --esx=/home/nutanix/foundation/tmp/VMware-VMvisor-Installer-8.0U3-24022510.x86_64.iso  --temp-dir=/home/nutanix/data/stargate-storage/disks/S6ERNE0T713199/tmp
+2025-07-10 18:32:32,076 generate_iso INFO Copying phoenix files to /home/nutanix/data/stargate-storage/disks/S6ERNE0T713199/tmp/44984714-e592-4dbb-a089-c420a97233a4
+2025-07-10 18:32:33,032 generate_iso INFO Phoenix will run in squashfs mode.
+2025-07-10 18:32:33,032 generate_iso INFO Copying phoenix updates to /home/nutanix/data/stargate-storage/disks/S6ERNE0T713199/tmp/44984714-e592-4dbb-a089-c420a97233a4
+2025-07-10 18:32:33,042 foundation.phoenix_prep INFO Foundation-layouts egg None doesn't exist
+2025-07-10 18:32:33,042 foundation.phoenix_prep DEBUG Injecting tartarus-1.20.0-2a2040b0-py2.7.tar.gz to phoenix
+2025-07-10 18:32:33,061 foundation.phoenix_prep DEBUG Injecting phorest-phoenix-1.1.2-2617d9e.tgz to phoenix
+2025-07-10 18:32:33,076 generate_iso INFO Adding hypervisor drivers package
+2025-07-10 18:32:49,800 driver_utils.package_utils INFO Created drivers package at /home/nutanix/data/stargate-storage/disks/S6ERNE0T713199/tmp/44984714-e592-4dbb-a089-c420a97233a4/images/driver_package.tar.gz
+2025-07-10 18:32:49,800 generate_iso INFO Copying the hypervisor to phoenix
+2025-07-10 18:32:50,308 generate_iso INFO Preparing phoenix iso in Installer mode with timeout 1
+2025-07-10 18:32:51,976 generate_iso INFO phoenix-5.9-esx-x86_64.iso generated in /home/nutanix/data/stargate-storage/disks/S6ERNE0T713199/tmp/
+2025-07-10 18:32:51,976 generate_iso INFO Cleaning up
+2025-07-10 18:32:52,339 generate_iso INFO Done]]></ac:plain-text-body>
+                  </ac:structured-macro>
+                  <ac:structured-macro ac:macro-id="1c023f1a-8853-40a9-9305-bc7d442fa590" ac:name="noformat" ac:schema-version="1">
+                    <ac:plain-text-body><![CDATA[./generate_iso phoenix --hyperv=<hyperv-path> --temp-dir=/home/nutanix/data/stargate-storage/disks/[DISK_SERIAL]/tmp]]></ac:plain-text-body>
+                  </ac:structured-macro>
+                  <ac:structured-macro ac:macro-id="7925f5ff-43be-44f2-adfe-4b3d30dded86" ac:name="code" ac:schema-version="1">
+                    <ac:parameter ac:name="theme">RDark</ac:parameter>
+                    <ac:parameter ac:name="title">Example</ac:parameter>
+                    <ac:plain-text-body><![CDATA[nutanix@CVM:~/foundation/bin$ ./generate_iso phoenix  --hyperv=/home/nutanix/foundation/tmp/en-us_windows_server_2022_x64_dvd_620d7eac.iso  --temp-dir=/home/nutanix/data/stargate-storage/disks/62Q0A018TFZJ/tmp
+2025-07-10 19:02:06,618 generate_iso INFO Copying phoenix files to /home/nutanix/data/stargate-storage/disks/62Q0A018TFZJ/tmp/1afa8554-43a7-4ce9-9cf2-e99f212ff519
+2025-07-10 19:02:07,541 generate_iso INFO Phoenix will run in squashfs mode.
+2025-07-10 19:02:07,541 generate_iso INFO Copying phoenix updates to /home/nutanix/data/stargate-storage/disks/62Q0A018TFZJ/tmp/1afa8554-43a7-4ce9-9cf2-e99f212ff519
+2025-07-10 19:02:07,549 foundation.phoenix_prep INFO Foundation-layouts egg None doesn't exist
+2025-07-10 19:02:07,549 foundation.phoenix_prep DEBUG Injecting tartarus-1.20.0-2a2040b0-py2.7.tar.gz to phoenix
+2025-07-10 19:02:07,566 foundation.phoenix_prep DEBUG Injecting phorest-phoenix-1.1.2-2617d9e.tgz to phoenix
+2025-07-10 19:02:07,581 generate_iso INFO Adding hypervisor drivers package
+2025-07-10 19:02:23,045 driver_utils.package_utils INFO Created drivers package at /home/nutanix/data/stargate-storage/disks/62Q0A018TFZJ/tmp/1afa8554-43a7-4ce9-9cf2-e99f212ff519/images/driver_package.tar.gz
+2025-07-10 19:02:23,045 generate_iso INFO Copying the hypervisor to phoenix
+2025-07-10 19:02:28,639 generate_iso INFO Preparing phoenix iso in Installer mode with timeout 1
+2025-07-10 19:02:38,921 generate_iso INFO phoenix-5.9-hyperv-x86_64.iso generated in /home/nutanix/data/stargate-storage/disks/62Q0A018TFZJ/tmp/
+2025-07-10 19:02:38,921 generate_iso INFO Cleaning up
+2025-07-10 19:02:39,311 generate_iso INFO Done]]></ac:plain-text-body>
+                  </ac:structured-macro>
+                  <span style="color: rgb(0,0,0);"> <br/>
+                  </span>
+                </li>
+                <li>
+                  <span style="color: rgb(0,0,0);"> <strong style="text-align: left;">Phoenix ISO with both, AOS bundle and hypervisor: </strong>If you need the phoenix bundle to include AOS and the hypervisor (AHV, ESXi, or Hyper-V), add one of these options to the AOS bundle command.<br/>
+                  </span>
+                  <ac:structured-macro ac:macro-id="176c6dbc-c1ff-4e07-b645-ea80bac6ae7b" ac:name="noformat" ac:schema-version="1">
+                    <ac:plain-text-body><![CDATA[./generate_iso phoenix --aos-package=/home/nutanix/foundation/nos/<AOS bundle created in step 5 tar.gz> --kvm=<kvm-path>  --temp-dir=/home/nutanix/data/stargate-storage/disks/[DISK_SERIAL]/tmp]]></ac:plain-text-body>
+                  </ac:structured-macro>
+                  <ac:structured-macro ac:macro-id="b67e526d-0910-4116-b60b-f64f6dfed940" ac:name="code" ac:schema-version="1">
+                    <ac:parameter ac:name="theme">RDark</ac:parameter>
+                    <ac:parameter ac:name="title">Example</ac:parameter>
+                    <ac:plain-text-body><![CDATA[nutanix@CVM:~/foundation/bin$ ./generate_iso phoenix --aos-package=/home/nutanix/foundation/nos/el8.5-release-ganges-7.3-stable-403c2537de51674979c3b35300abff1a7566ac8a.tar.gz --kvm=/home/nutanix/foundation/tmp/AHV-DVD-x86_64-10.3-422.iso  --temp-dir=/home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp
+2025-07-10 18:07:29,278 generate_iso INFO Copying phoenix files to /home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp/82d9f161-1876-4253-bad9-ee25ad0fa26a
+2025-07-10 18:07:29,603 generate_iso INFO Phoenix will run in squashfs mode.
+2025-07-10 18:07:29,603 generate_iso INFO Copying phoenix updates to /home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp/82d9f161-1876-4253-bad9-ee25ad0fa26a
+2025-07-10 18:07:29,609 foundation.phoenix_prep INFO Foundation-layouts egg None doesn't exist
+2025-07-10 18:07:29,609 foundation.phoenix_prep DEBUG Injecting tartarus-1.20.0-2a2040b0-py2.7.tar.gz to phoenix
+2025-07-10 18:07:29,615 foundation.phoenix_prep DEBUG Injecting phorest-phoenix-1.1.2-2617d9e.tgz to phoenix
+2025-07-10 18:07:29,620 generate_iso INFO Adding hypervisor drivers package
+2025-07-10 18:07:42,827 driver_utils.package_utils INFO Created drivers package at /home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp/82d9f161-1876-4253-bad9-ee25ad0fa26a/images/driver_package.tar.gz
+2025-07-10 18:07:42,827 generate_iso INFO Copying the AOS from /home/nutanix/foundation/nos/el8.5-release-ganges-7.3-stable-403c2537de51674979c3b35300abff1a7566ac8a.tar.gz to /home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp/82d9f161-1876-4253-bad9-ee25ad0fa26a/images/svm
+2025-07-10 18:07:51,879 generate_iso INFO Unzipping AOS /home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp/82d9f161-1876-4253-bad9-ee25ad0fa26a/images/svm/el8.5-release-ganges-7.3-stable-403c2537de51674979c3b35300abff1a7566ac8a.tar.gz
+2025-07-10 18:08:28,465 generate_iso INFO Copying the hypervisor to phoenix
+2025-07-10 18:08:30,727 generate_iso INFO Preparing phoenix iso in Installer mode with timeout 1
+2025-07-10 18:09:09,904 generate_iso INFO phoenix-5.9_AOS-kvm-x86_64.iso generated in /home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp/
+2025-07-10 18:09:09,904 generate_iso INFO Cleaning up
+2025-07-10 18:09:10,259 generate_iso INFO Done]]></ac:plain-text-body>
+                  </ac:structured-macro>
+                  <ac:structured-macro ac:macro-id="38d66ff7-0ecd-411b-8d53-c953b8949aed" ac:name="noformat" ac:schema-version="1">
+                    <ac:plain-text-body><![CDATA[./generate_iso phoenix --aos-package=/home/nutanix/foundation/nos/<AOS bundle created in step 5 tar.gz> --esx=<esx-path>  --temp-dir=/home/nutanix/data/stargate-storage/disks/[DISK_SERIAL]/tmp]]></ac:plain-text-body>
+                  </ac:structured-macro>
+                  <ac:structured-macro ac:macro-id="1085009d-3aeb-4e4b-8363-8a20dc2e5ba6" ac:name="code" ac:schema-version="1">
+                    <ac:parameter ac:name="theme">RDark</ac:parameter>
+                    <ac:parameter ac:name="title">Example</ac:parameter>
+                    <ac:plain-text-body><![CDATA[nutanix@CVM:~/foundation/bin$ ./generate_iso phoenix --aos-package=/home/nutanix/foundation/nos/el8.5-release-ganges-7.3-stable-403c2537de51674979c3b35300abff1a7566ac8a.tar.gz --esx=/home/nutanix/foundation/tmp/VMware-VMvisor-Installer-8.0U3-24022510.x86_64.iso  --temp-dir=/home/nutanix/data/stargate-storage/disks/S6ERNE0T713199/tmp
+2025-07-10 18:35:46,180 generate_iso INFO Copying phoenix files to /home/nutanix/data/stargate-storage/disks/S6ERNE0T713199/tmp/423a611c-bcad-4d75-96f2-c3b697208287
+2025-07-10 18:35:46,541 generate_iso INFO Phoenix will run in squashfs mode.
+2025-07-10 18:35:46,541 generate_iso INFO Copying phoenix updates to /home/nutanix/data/stargate-storage/disks/S6ERNE0T713199/tmp/423a611c-bcad-4d75-96f2-c3b697208287
+2025-07-10 18:35:46,548 foundation.phoenix_prep INFO Foundation-layouts egg None doesn't exist
+2025-07-10 18:35:46,549 foundation.phoenix_prep DEBUG Injecting tartarus-1.20.0-2a2040b0-py2.7.tar.gz to phoenix
+2025-07-10 18:35:46,555 foundation.phoenix_prep DEBUG Injecting phorest-phoenix-1.1.2-2617d9e.tgz to phoenix
+2025-07-10 18:35:46,561 generate_iso INFO Adding hypervisor drivers package
+2025-07-10 18:36:02,264 driver_utils.package_utils INFO Created drivers package at /home/nutanix/data/stargate-storage/disks/S6ERNE0T713199/tmp/423a611c-bcad-4d75-96f2-c3b697208287/images/driver_package.tar.gz
+2025-07-10 18:36:02,265 generate_iso INFO Copying the AOS from /home/nutanix/foundation/nos/el8.5-release-ganges-7.3-stable-403c2537de51674979c3b35300abff1a7566ac8a.tar.gz to /home/nutanix/data/stargate-storage/disks/S6ERNE0T713199/tmp/423a611c-bcad-4d75-96f2-c3b697208287/images/svm
+2025-07-10 18:36:09,805 generate_iso INFO Unzipping AOS /home/nutanix/data/stargate-storage/disks/S6ERNE0T713199/tmp/423a611c-bcad-4d75-96f2-c3b697208287/images/svm/el8.5-release-ganges-7.3-stable-403c2537de51674979c3b35300abff1a7566ac8a.tar.gz
+2025-07-10 18:36:46,563 generate_iso INFO Copying the hypervisor to phoenix
+2025-07-10 18:36:47,791 generate_iso INFO Preparing phoenix iso in Installer mode with timeout 1
+2025-07-10 18:36:58,550 generate_iso INFO phoenix-5.9_AOS-esx-x86_64.iso generated in /home/nutanix/data/stargate-storage/disks/S6ERNE0T713199/tmp/
+2025-07-10 18:36:58,550 generate_iso INFO Cleaning up
+2025-07-10 18:37:02,047 generate_iso INFO Done]]></ac:plain-text-body>
+                  </ac:structured-macro>
+                  <ac:structured-macro ac:macro-id="52289f01-94ac-4e87-b1f7-1f74b16bf322" ac:name="noformat" ac:schema-version="1">
+                    <ac:plain-text-body><![CDATA[./generate_iso phoenix --aos-package=/home/nutanix/foundation/nos/<AOS bundle created in step 5 tar.gz> --hyperv=<hyperv-path>  --temp-dir=/home/nutanix/data/stargate-storage/disks/[DISK_SERIAL]/tmp]]></ac:plain-text-body>
+                  </ac:structured-macro>
+                  <ac:structured-macro ac:macro-id="832556eb-0da3-4dec-a9a4-d4cbc44688cb" ac:name="code" ac:schema-version="1">
+                    <ac:parameter ac:name="theme">RDark</ac:parameter>
+                    <ac:parameter ac:name="title">Example</ac:parameter>
+                    <ac:plain-text-body><![CDATA[nutanix@CVM:~/foundation/bin$ ./generate_iso phoenix  --aos-package=/home/nutanix/foundation/nos/el8.5-release-ganges-7.3-stable-403c2537de51674979c3b35300abff1a7566ac8a.tar.gz --hyperv=/home/nutanix/foundation/tmp/en-us_windows_server_2022_x64_dvd_620d7eac.iso  --temp-dir=/home/nutanix/data/stargate-storage/disks/62Q0A018TFZJ/tmp
+2025-07-10 19:08:17,851 generate_iso INFO Copying phoenix files to /home/nutanix/data/stargate-storage/disks/62Q0A018TFZJ/tmp/84129329-83d9-4d7e-9b8b-527f0fb4246c
+2025-07-10 19:08:19,175 generate_iso INFO Phoenix will run in squashfs mode.
+2025-07-10 19:08:19,176 generate_iso INFO Copying phoenix updates to /home/nutanix/data/stargate-storage/disks/62Q0A018TFZJ/tmp/84129329-83d9-4d7e-9b8b-527f0fb4246c
+2025-07-10 19:08:19,184 foundation.phoenix_prep INFO Foundation-layouts egg None doesn't exist
+2025-07-10 19:08:19,185 foundation.phoenix_prep DEBUG Injecting tartarus-1.20.0-2a2040b0-py2.7.tar.gz to phoenix
+2025-07-10 19:08:19,202 foundation.phoenix_prep DEBUG Injecting phorest-phoenix-1.1.2-2617d9e.tgz to phoenix
+2025-07-10 19:08:19,217 generate_iso INFO Adding hypervisor drivers package
+2025-07-10 19:08:34,540 driver_utils.package_utils INFO Created drivers package at /home/nutanix/data/stargate-storage/disks/62Q0A018TFZJ/tmp/84129329-83d9-4d7e-9b8b-527f0fb4246c/images/driver_package.tar.gz
+2025-07-10 19:08:34,540 generate_iso INFO Copying the AOS from /home/nutanix/foundation/nos/el8.5-release-ganges-7.3-stable-403c2537de51674979c3b35300abff1a7566ac8a.tar.gz to /home/nutanix/data/stargate-storage/disks/62Q0A018TFZJ/tmp/84129329-83d9-4d7e-9b8b-527f0fb4246c/images/svm
+2025-07-10 19:08:40,979 generate_iso INFO Unzipping AOS /home/nutanix/data/stargate-storage/disks/62Q0A018TFZJ/tmp/84129329-83d9-4d7e-9b8b-527f0fb4246c/images/svm/el8.5-release-ganges-7.3-stable-403c2537de51674979c3b35300abff1a7566ac8a.tar.gz
+2025-07-10 19:09:23,816 generate_iso INFO Copying the hypervisor to phoenix
+2025-07-10 19:09:40,325 generate_iso INFO Preparing phoenix iso in Installer mode with timeout 1
+2025-07-10 19:10:21,132 generate_iso INFO phoenix-5.9_AOS-hyperv-x86_64.iso generated in /home/nutanix/data/stargate-storage/disks/62Q0A018TFZJ/tmp/
+2025-07-10 19:10:21,132 generate_iso INFO Cleaning up
+2025-07-10 19:10:21,567 generate_iso INFO Done]]></ac:plain-text-body>
+                  </ac:structured-macro>
+                  <span style="color: rgb(0,0,0);"> <br/>
+                  </span>
+                </li>
+                <li>
+                  <span style="color: rgb(0,0,0);"> <strong>Generic Phoenix ISO:</strong> <span>Perform the following command to create a generic Phoenix ISO, which we have on the <span> <a class="external-link" href="http://portal.nutanix.com/#/page/phoenix">Support Portal</a>. The following command will automatically create the ISO file in <em>/home/nutanix/foundation/tmp.</em> <br/>
+                      </span> </span> </span>
+                  <ac:structured-macro ac:macro-id="785b8886-4672-4bb1-b663-d87994e38dd5" ac:name="noformat" ac:schema-version="1">
+                    <ac:plain-text-body><![CDATA[./generate_iso phoenix --temp-dir=/home/nutanix/data/stargate-storage/disks/[DISK_SERIAL]/tmp]]></ac:plain-text-body>
+                  </ac:structured-macro>
+                  <ac:structured-macro ac:macro-id="027c0be2-5787-430d-9930-fcd2ca7a3cce" ac:name="code" ac:schema-version="1">
+                    <ac:parameter ac:name="theme">RDark</ac:parameter>
+                    <ac:parameter ac:name="title">Example</ac:parameter>
+                    <ac:plain-text-body><![CDATA[nutanix@CVM:~/foundation/bin$ ./generate_iso phoenix --temp-dir=/home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp
+2025-07-10 19:31:48,401 generate_iso INFO Copying phoenix files to /home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp/888a70c4-e455-4136-b92c-8d5cde43bca6
+2025-07-10 19:31:48,826 generate_iso INFO Phoenix will run in squashfs mode.
+2025-07-10 19:31:48,826 generate_iso INFO Copying phoenix updates to /home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp/888a70c4-e455-4136-b92c-8d5cde43bca6
+2025-07-10 19:31:48,831 foundation.phoenix_prep INFO Foundation-layouts egg None doesn't exist
+2025-07-10 19:31:48,832 foundation.phoenix_prep DEBUG Injecting tartarus-1.20.0-2a2040b0-py2.7.tar.gz to phoenix
+2025-07-10 19:31:48,838 foundation.phoenix_prep DEBUG Injecting phorest-phoenix-1.1.2-2617d9e.tgz to phoenix
+2025-07-10 19:31:48,843 generate_iso INFO Adding hypervisor drivers package
+2025-07-10 19:32:02,028 driver_utils.package_utils INFO Created drivers package at /home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp/888a70c4-e455-4136-b92c-8d5cde43bca6/images/driver_package.tar.gz
+2025-07-10 19:32:02,028 generate_iso INFO Preparing phoenix iso in Installer mode with timeout 1
+2025-07-10 19:32:02,841 generate_iso INFO phoenix-5.9-x86_64.iso generated in /home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp/
+2025-07-10 19:32:02,842 generate_iso INFO Cleaning up
+2025-07-10 19:32:03,494 generate_iso INFO Done]]></ac:plain-text-body>
+                  </ac:structured-macro>
+                </li>
+              </ol>
+            </li>
+          </ol>
+        </ac:rich-text-body>
+      </ac:structured-macro>
+      <ac:structured-macro ac:macro-id="expand-post-creation" ac:name="expand" ac:schema-version="1">
+        <ac:parameter ac:name="title">After Creation: Downloading and Cleanup</ac:parameter>
+        <ac:rich-text-body>
+          <ol>
+            <li>
+              <span style="letter-spacing: 0.0px;">The resulting Phoenix ISO's will be in the </span> <span style="color: rgb(0,0,0);letter-spacing: 0.0px;"> <em>/home/nutanix/data/stargate-storage/disks/[DISK_SERIAL]/tmp/</em> </span> <span style="letter-spacing: 0.0px;"> that you specified. Here is how these ISOs will appear. Note that you can tell by the file name whether an AOS binary and/or Hypervisor binary are included (along with the version of Foundation that was used to create the ISO).</span>
+              <ac:structured-macro ac:macro-id="89491bc5-fb98-4ab3-b220-28f61522e906" ac:name="tip" ac:schema-version="1">
+                <ac:rich-text-body>
+                  <p>As you can see, these files are often quite large. Consult with your customer to see if they have enough bandwidth to download AND upload these files to and from their workstation. Otherwise, you will be wasting valuable time. Furthermore, if the connection is poor, the Phoenix Installer may fail to load. In cases of slow network connection, mount the Phoenix ISO from a CVM (<a href="http://portal.nutanix.com/kb/4616">KB-4616</a>).</p>
+                </ac:rich-text-body>
+              </ac:structured-macro>
+              <ac:structured-macro ac:macro-id="944d7b59-7161-4dc1-b28e-2b729f9d02bc" ac:name="note" ac:schema-version="1">
+                <ac:rich-text-body>
+                  <p>In AOS 7.0 and above, you will not be able to mount Phoenix or any other ISO to the host via CVM as described in <a href="http://portal.nutanix.com/kb/4616">KB-4616</a>. The smcipmitool relies on SHA-1 which is disabled on AOS 7.0 and above. While running the the smcipmitool you will see Java cryptographic provider error, specifically involving PKCS#11 and HMAC-SHA1 initialization.</p>
+                </ac:rich-text-body>
+              </ac:structured-macro>
+              <ac:structured-macro ac:macro-id="2c12a97a-e9e0-48a3-b75e-806b073793d9" ac:name="noformat" ac:schema-version="1">
+                <ac:plain-text-body><![CDATA[nutanix@CVM:~/data/stargate-storage/disks/[DISK_SERIAL]/tmp$ ls -lh
+total 47G
+-rw-------. 1 nutanix nutanix 8.4G Jul 10 18:09 phoenix-5.9_AOS-kvm-x86_64.iso
+-rw-------. 1 nutanix nutanix 6.8G Jul 10 17:49 phoenix-5.9_AOS-x86_64.iso
+-rw-------. 1 nutanix nutanix 2.6G Jul 10 18:05 phoenix-5.9-kvm-x86_64.iso
+-rw-------. 1 nutanix nutanix 989M Jul 10 19:32 phoenix-5.9-x86_64.iso
+-rw-------. 1 nutanix nutanix 7.4G Jul 10 18:36 phoenix-5.9_AOS-esx-x86_64.iso
+-rw-------. 1 nutanix nutanix 1.6G Jul 10 18:32 phoenix-5.9-esx-x86_64.iso
+-rw-------. 1 nutanix nutanix  13G Jul 10 19:10 phoenix-5.9_AOS-hyperv-x86_64.iso
+-rw-------. 1 nutanix nutanix 6.2G Jul 10 19:02 phoenix-5.9-hyperv-x86_64.iso]]></ac:plain-text-body>
+              </ac:structured-macro>
+            </li>
+            <li>
+              <span style="color: rgb(0,0,0);letter-spacing: 0.0px;">Copy the ISO off the CVM with WinSCP to a machine that can mount the ISO in IPMI. Check MD5 of the generated ISO </span> <strong style="letter-spacing: 0.0px;">before</strong> <span style="letter-spacing: 0.0px;color: rgb(0,0,0);">and </span> <strong style="letter-spacing: 0.0px;">after</strong> <span style="letter-spacing: 0.0px;color: rgb(0,0,0);">it is transferred anywhere. Compare the results to ensure the ISO is not corrupted during the transfer. For a Linux based system or ESXi the </span> <span style="letter-spacing: 0.0px;"> <em style="letter-spacing: 0.0px;">md5sum</em> <span style="letter-spacing: 0.0px;"> <span style="letter-spacing: 0.0px;color: rgb(0,0,0);"> command can be utilized, while for Windows the below PowerShell command can be used:</span> </span> </span>
+              <ac:structured-macro ac:macro-id="570b9be4-aaab-414c-80e9-dd26cd4b9b24" ac:name="noformat" ac:schema-version="1">
+                <ac:plain-text-body><![CDATA[PS C:\Users\Administrator> Get-FileHash -Algorithm MD5 -Path path_to_iso]]></ac:plain-text-body>
+              </ac:structured-macro>
+              <ac:structured-macro ac:macro-id="23507972-a927-41f2-9408-4b71100fd232" ac:name="tip" ac:schema-version="1">
+                <ac:rich-text-body>
+                  <p>
+                    <span style="color: rgb(0,0,0);">Before connecting with WinSCP, disable the "</span> <strong>Optimize connection buffer size</strong> <span style="color: rgb(0,0,0);">" setting in the "</span> <strong>Connection</strong> <span style="color: rgb(0,0,0);">" section of the "</span> <strong>Advanced Settings</strong> <span style="color: rgb(0,0,0);">". Refer to </span> <a href="https://portal.nutanix.com/kb/6881">KB-</a> <a href="https://portal.nutanix.com/kb/6881">6881</a> <span style="color: rgb(0,0,0);">.</span>
+                  </p>
+                </ac:rich-text-body>
+              </ac:structured-macro>
+              <ac:structured-macro ac:macro-id="0c53cfd7-3f7f-47f5-869f-aa8637050e3f" ac:name="warning" ac:schema-version="1">
+                <ac:rich-text-body>
+                  <p>Please remember to delete the Phoenix ISO from CVM and/or the customer's computer once you are finished using it. Phoenix containing AOS is a Support-Only tool capable of destructive actions to cluster data and configuration. Leaving the ISO lying around may result in its improper use later in the future.</p>
+                </ac:rich-text-body>
+              </ac:structured-macro>
+            </li>
+            <li>
+              <span style="color: rgb(0,0,0);">If you created<span> <em style="text-align: left;">/tmp</em> <span style="color: rgb(0,0,0);"> <span>directory in step 4 of <ac:link ac:anchor="Before You Begin"/> section, remove that directory now:</span> </span> </span>
+              </span>
+              <ol>
+                <li>
+                  <span style="color: rgb(0,0,0);">Remove the file/files in the directory (no recursive or force):<br/>
+                  </span>
+                  <ac:structured-macro ac:macro-id="c4134311-4e41-41ee-b9cd-598c31388381" ac:name="noformat" ac:schema-version="1">
+                    <ac:plain-text-body><![CDATA[nutanix@cvm$ /bin/rm <path_to_SSD>/tmp/*]]></ac:plain-text-body>
+                  </ac:structured-macro>
+                  <span style="color: rgb(0,0,0);"> <span style="color: rgb(0,0,0);">For example:</span> <br/>
+                  </span>
+                  <ac:structured-macro ac:macro-id="ed3c8386-1610-4bbf-9336-9208ec35d4cb" ac:name="noformat" ac:schema-version="1">
+                    <ac:plain-text-body><![CDATA[nutanix@cvm$ /bin/rm /home/nutanix/data/stargate-storage/disks/S6ERNL0XC01650/tmp/*]]></ac:plain-text-body>
+                  </ac:structured-macro>
+                </li>
+                <li>
+                  <span style="color: rgb(0,0,0);"> <span style="color: rgb(0,0,0);">Remove the directory:<br/>
+                    </span> </span>
+                  <ac:structured-macro ac:macro-id="85e23bc4-439f-4e9f-88eb-66cd2d2cd9f0" ac:name="noformat" ac:schema-version="1">
+                    <ac:plain-text-body><![CDATA[nutanix@cvm$ rmdir <path_to_SSD>/tmp/]]></ac:plain-text-body>
+                  </ac:structured-macro>
+                </li>
+              </ol>
+            </li>
+          </ol>
+        </ac:rich-text-body>
+      </ac:structured-macro>
+      <ac:structured-macro ac:macro-id="expand-vanilla-iso" ac:name="expand" ac:schema-version="1">
+        <ac:parameter ac:name="title">Alternative: Downloading a Vanilla Phoenix ISO</ac:parameter>
+        <ac:rich-text-body>
+          <h1>
+            <span style="font-size: 24.0px;letter-spacing: -0.01em;">Downloading a Vanilla Phoenix ISO from the Nutanix Portal</span>
+          </h1>
+          <ac:structured-macro ac:macro-id="89577b49-3b0d-45ae-a12f-b9ff0693df2c" ac:name="note" ac:schema-version="1">
+            <ac:rich-text-body>
+              <p>You cannot install AHV straight from an AHV ISO file. The only supported method of installing or reimaging AHV is to create a Phoenix ISO with the AHV ISO baked-in or to leverage Foundation.</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <p>The only copy of Phoenix you will find on the Nutanix portal is a special copy intended only for use in configuring a freshly-installed ESXi or Hyper-V hypervisor to work with an already existing CVM. It doesn't natively contain any AOS software release and so cannot be used to repair or reimage a CVM.</p>
+          <p>The good thing is that you don't need to worry about getting the right version of Phoenix to use for your case. Just download the latest version found on the portal and mount it to your host after you have manually installed your hypervisor. Phoenix will automatically detect the software on your M.2 hypervisor boot disk and SSD/NVMe CVM boot drives and configure the hypervisor to work appropriately for those versions.</p>
+          <h3>Portal Phoenix Location</h3>
+          <p>
+            <a href="https://portal.nutanix.com/page/downloads?product=phoenix">https://portal.nutanix.com/page/downloads?product=phoenix</a>
+          </p>
+        </ac:rich-text-body>
+      </ac:structured-macro>
+      <ac:structured-macro ac:macro-id="expand-foundation-vm" ac:name="expand" ac:schema-version="1">
+        <ac:parameter ac:name="title">Alternative: Using a Foundation VM</ac:parameter>
+        <ac:rich-text-body>
+          <h1>
+            <span style="font-size: 24.0px;letter-spacing: -0.01em;">Using a Foundation VM to Create Phoenix</span>
+          </h1>
+          <p>Check the Phoenix Guide PDF linked within <a href="http://portal.nutanix.com/kb/5591">KB-5591</a> or refer to "Option 2" in <a href="https://nutanix.my.salesforce.com/articles/Knowledge_Base/How-to-create-a-Phoenix-iso">KB-3523</a>.</p>
+        </ac:rich-text-body>
+      </ac:structured-macro>
+    </ac:layout-cell>
+  </ac:layout-section>
+  <ac:layout-section ac:type="single">
+    <ac:layout-cell>
+      <p>
+        <br/>
+      </p>
+      <p>
+        <ac:structured-macro ac:macro-id="ec046504-3de7-433d-9662-9ade9307b5e7" ac:name="macrosuite-button" ac:schema-version="1">
+          <ac:parameter ac:name="macroId">rC5a5Lc8KpDDv5TXp4bt-</ac:parameter>
+          <ac:parameter ac:name="data">JTdCJTIyYnV0dG9uVHlwZSUyMiUzQSUyMmljb25fcmlnaHQlMjIlMkMlMjJidXR0b25TaXplJTIyJTNBJTIybGFyZ2UlMjIlMkMlMjJidXR0b25UZXh0JTIyJTNBJTIyUHJvY2VlZCUyMHRvJTIwQ2hhcHRlciUyMDQlM0ElMjBSdW5uaW5nJTIwdGhlJTIwSW5zdGFsbGVyJTIyJTJDJTIyYnV0dG9uUmFkaXVzJTIyJTNBMSUyQyUyMmJ1dHRvbldpZHRoJTIyJTNBMjAlMkMlMjJidXR0b25Db2xvciUyMiUzQSUyMiUyMzAwMDAwMDAwJTIyJTJDJTIyYnV0dG9uRm9udENvbG9yJTIyJTNBJTIyJTIzMDA2NWZmZmYlMjIlMkMlMjJidXR0b25Cb3JkZXJDb2xvciUyMiUzQSUyMiUyMzAwMDAwMDAwJTIyJTJDJTIyYnV0dG9uTGluayUyMiUzQSUyMiU3QiU1QyUyMmlkJTVDJTIyJTNBJTVDJTIyNDMxMzI4Mjk2JTVDJTIyJTJDJTVDJTIybGluayU1QyUyMiUzQSU1QyUyMiUyRnglMkZLSXkxR1ElNUMlMjIlMkMlNUMlMjJ0aXRsZSU1QyUyMiUzQSU1QyUyMkRSQUZUJTIwLSUyMFBob2VuaXglMjBSdW5uaW5nJTIwdGhlJTIwSW5zdGFsbGVyJTVDJTIyJTJDJTVDJTIydHlwZSU1QyUyMiUzQSU1QyUyMnBhZ2UlNUMlMjIlMkMlNUMlMjJzb3VyY2UlNUMlMjIlM0ElNUMlMjJwYWdlJTVDJTIyJTdEJTIyJTJDJTIyYnV0dG9uTmV3VGFiJTIyJTNBJTIydHJ1ZSUyMiUyQyUyMmJ1dHRvbk5ld0xpbmslMjIlM0ElMjIlMjIlMkMlMjJidXR0b25JY29uJTIyJTNBJTIyYm9vdHN0cmFwJTJGQXJyb3dSaWdodENpcmNsZSUyMiUyQyUyMmJ1dHRvbkhvdmVyQ29sb3IlMjIlM0ElMjJ0cmFuc3BhcmVudCUyMiUyQyUyMmJ1dHRvbkJvcmRlckhvdmVyQ29sb3IlMjIlM0ElMjIlMjMwMDAwMDAwMCUyMiUyQyUyMmJ1dHRvbkZvbnRIb3ZlckNvbG9yJTIyJTNBJTIyJTIzMDAwMDAwMDAlMjIlMkMlMjJidXR0b25JY29uSG92ZXJDb2xvciUyMiUzQSUyMiUyMzAwMDAwMDAwJTIyJTJDJTIyaXNCdXR0b25TaGFkb3dPbiUyMiUzQXRydWUlMkMlMjJidXR0b25JY29uQ29sb3IlMjIlM0ElMjIlMjMwMDY1ZmZmZiUyMiUyQyUyMmJ1dHRvbldpZHRoRGV0ZWN0aW9uJTIyJTNBNjAlMkMlMjJlbW9qaUVuYWJsZWQlMjIlM0FmYWxzZSUyQyUyMmVtb2ppJTIyJTNBJTIyJTdCJTdEJTIyJTdE</ac:parameter>
+        </ac:structured-macro>
+      </p>
+    </ac:layout-cell>
+  </ac:layout-section>
+</ac:layout>

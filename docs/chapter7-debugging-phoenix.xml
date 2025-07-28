@@ -1,0 +1,1625 @@
+<ac:layout>
+  <ac:layout-section ac:type="single">
+    <ac:layout-cell>
+      <p>
+        <span style="font-size: 24.0px;letter-spacing: -0.01em;">Overview</span>
+      </p>
+      <p>This chapter provides comprehensive guidance for troubleshooting systems that have booted into Phoenix or Rescue shells. You'll learn to identify why systems enter these diagnostic environments, how to perform effective troubleshooting procedures, and how to safely exit these shells once issues are resolved. This chapter covers both basic recovery procedures and advanced diagnostic workflows for complex hardware and software issues.</p>
+      <ac:structured-macro ac:macro-id="chapter-overview" ac:name="info" ac:schema-version="1">
+        <ac:parameter ac:name="title">What You Will Learn</ac:parameter>
+        <ac:rich-text-body>
+          <p>By the end of this chapter, you will be able to:</p>
+          <ul>
+            <li>
+              <strong>Identify Phoenix/Rescue scenarios</strong> - Understand why hosts and CVMs boot into diagnostic environments</li>
+            <li>
+              <strong>Exit Phoenix shells safely</strong> - Follow proper procedures to return systems to normal operation</li>
+            <li>
+              <strong>Collect diagnostic logs</strong> - Gather critical troubleshooting information before making changes</li>
+            <li>
+              <strong>Troubleshoot storage issues</strong> - Diagnose disk visibility, health checks, and partition problems</li>
+            <li>
+              <strong>Mount system partitions</strong> - Access root and home directories for log analysis and data recovery</li>
+            <li>
+              <strong>Use cvm_diagnose effectively</strong> - Boot CVMs into rescue environments for advanced diagnostics</li>
+            <li>
+              <strong>Execute systematic workflows</strong> - Follow structured approaches for hardware troubleshooting</li>
+          </ul>
+        </ac:rich-text-body>
+      </ac:structured-macro>
+      <h2>Why is my Host in the Phoenix Shell?</h2>
+      <p>When a host boots into Phoenix instead of its normal operating system, it's usually due to a failed operation or stuck process. Here are the most common causes:</p>
+      <ac:structured-macro ac:macro-id="a275c79f-1646-44a6-8f0f-cffdfb8f36f9" ac:name="expand" ac:schema-version="1">
+        <ac:parameter ac:name="title">Common Reasons for Host Phoenix Shell</ac:parameter>
+        <ac:rich-text-body>
+          <h3>Most Common Scenarios</h3>
+          <ul>
+            <li>
+              <strong>Foundation/Cluster Expand Failure:</strong> The imaging process for AOS or Hypervisor failed to complete successfully</li>
+            <li>
+              <strong>LCM Firmware Upgrade Issues:</strong> Firmware upgrade process encountered an error and couldn't complete</li>
+            <li>
+              <strong>Prism Host Boot Disk Repair:</strong> The repair process has failed or is still in progress</li>
+            <li>
+              <strong>Phoenix Imaging/Repair Failure:</strong> Bare metal imaging or repair operations using Phoenix have failed</li>
+            <li>
+              <strong>Boot Process Error:</strong> System encountered a FATAL error before the Nutanix Installer menu could load</li>
+            <li>
+              <strong>Leftover ISO:</strong> A phoenix.iso is still mounted in IPMI from a previous troubleshooting session</li>
+          </ul>
+          <ac:structured-macro ac:macro-id="f063a32a-d5fa-4e1a-8cd1-025de437c3f1" ac:name="info" ac:schema-version="1">
+            <ac:parameter ac:name="title">Quick Check</ac:parameter>
+            <ac:rich-text-body>
+              <p>Before diving into complex troubleshooting, always check if there's a phoenix.iso mounted in IPMI that can simply be disconnected.</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+        </ac:rich-text-body>
+      </ac:structured-macro>
+      <h2>Why is my CVM in a Phoenix Shell?</h2>
+      <p>CVMs typically boot into Phoenix for planned firmware upgrades or manual troubleshooting. Here are the main scenarios:</p>
+      <ac:structured-macro ac:macro-id="6b91baa0-bb34-493f-882c-c89b72924fed" ac:name="expand" ac:schema-version="1">
+        <ac:parameter ac:name="title">CVM Phoenix Shell Scenarios</ac:parameter>
+        <ac:rich-text-body>
+          <h3>Common CVM Phoenix Situations</h3>
+          <ul>
+            <li>
+              <strong> <ac:inline-comment-marker ac:ref="a5e7af4c-84bd-4f9f-ae73-ef8efd195370">LCM Firmware Upgrade:</ac:inline-comment-marker> </strong> <ac:inline-comment-marker ac:ref="a5e7af4c-84bd-4f9f-ae73-ef8efd195370"> Life Cycle Manager (LCM) automatically boots the CVM into Phoenix to perform disk or HBA firmware upgrades using the </ac:inline-comment-marker> <a href="https://confluence.eng.nutanix.com:8443/display/SO/Upgrades#Upgrades-In-VMFirmwareUpgrades(IVU)"> <ac:inline-comment-marker ac:ref="a5e7af4c-84bd-4f9f-ae73-ef8efd195370">In-VM (IVU) upgrade method</ac:inline-comment-marker> </a>
+            </li>
+            <li>
+              <strong>Manual Troubleshooting:</strong> An administrator has intentionally attached a phoenix.iso to the CVM for diagnostic or repair purposes</li>
+          </ul>
+          <ac:structured-macro ac:macro-id="8f96e93c-bbe3-4eb3-b3cf-f69305dd28e8" ac:name="note" ac:schema-version="1">
+            <ac:parameter ac:name="title">Expected Behavior</ac:parameter>
+            <ac:rich-text-body>
+              <p>Unlike hosts, CVMs in Phoenix are often there by design (especially during LCM upgrades). Check the recent cluster activity before assuming there's a problem.</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+        </ac:rich-text-body>
+      </ac:structured-macro>
+      <h2>Why is my CVM in a Rescue Shell?</h2>
+      <p>A CVM in rescue shell indicates either a failed repair operation or intentional troubleshooting mode. Here's what typically causes this:</p>
+      <ac:structured-macro ac:macro-id="ca174f31-4061-443b-a59b-840b132226e9" ac:name="expand" ac:schema-version="1">
+        <ac:parameter ac:name="title">CVM Rescue Shell Causes</ac:parameter>
+        <ac:rich-text-body>
+          <h3>Rescue Shell Scenarios</h3>
+          <ul>
+            <li>
+              <strong>Failed SSD Repair:</strong> A Single SSD Repair task encountered an error while attempting to rescue the CVM</li>
+            <li>
+              <strong>Diagnostic Mode:</strong> The <a href="https://confluence.eng.nutanix.com:8443/display/STK/Using+the+cvm_diagnose+Script?src=contextnavpagetreemode">cvm_diagnose script</a> was intentionally used to boot the CVM into rescue mode for troubleshooting</li>
+            <li>
+              <strong>Manual Intervention:</strong> An SRE manually mounted an svmrescue.iso to the CVM for advanced troubleshooting</li>
+          </ul>
+          <ac:structured-macro ac:macro-id="5d57cd67-8dd7-42fb-82d8-4041bb519e6a" ac:name="warning" ac:schema-version="1">
+            <ac:parameter ac:name="title">Action Required</ac:parameter>
+            <ac:rich-text-body>
+              <p>Unlike Phoenix shells, rescue shells typically indicate that manual intervention is needed to resolve an underlying issue before the CVM can return to normal operation.</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+        </ac:rich-text-body>
+      </ac:structured-macro>
+      <h2>How to Get Out of Phoenix</h2>
+      <p>Once you've completed your troubleshooting in Phoenix, follow these steps to return the system to normal operation:</p>
+      <ac:structured-macro ac:macro-id="b1f8edac-be9a-4eab-a72e-a5fea3fb6006" ac:name="expand" ac:schema-version="1">
+        <ac:parameter ac:name="title">Exiting Phoenix Shell</ac:parameter>
+        <ac:rich-text-body>
+          <ac:structured-macro ac:macro-id="41c04478-5549-4423-88d6-01350079606d" ac:name="warning" ac:schema-version="1">
+            <ac:parameter ac:name="title">Collect Logs First!</ac:parameter>
+            <ac:rich-text-body>
+              <p>
+                <strong> <ac:inline-comment-marker ac:ref="7547efc3-5cf8-4272-a360-b008a7e2f417">Important:</ac:inline-comment-marker> </strong> <ac:inline-comment-marker ac:ref="7547efc3-5cf8-4272-a360-b008a7e2f417"> Always gather diagnostic logs before exiting Phoenix, as many logs are non-persistent and will be lost after reboot.</ac:inline-comment-marker>
+              </p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <h3>Exiting a Host from Phoenix</h3>
+          <p>For physical hosts, follow these steps to return to normal hypervisor boot:</p>
+          <ol>
+            <li>
+              <strong>Remove ISOs:</strong> First, detach any ISO files that are mounted in the IPMI console</li>
+            <li>
+              <strong>Run Boot Script:</strong> Execute the automated script that detects your hypervisor and fixes the boot configuration:<ac:structured-macro ac:macro-id="e8074f18-57db-4b93-886b-f74ca0f3e865" ac:name="code" ac:schema-version="1">
+                <ac:parameter ac:name="language">bash</ac:parameter>
+                <ac:plain-text-body><![CDATA[phoenix / # python /phoenix/reboot_to_host.py]]></ac:plain-text-body>
+              </ac:structured-macro>
+              <p>This script automatically detects whether you have AHV, ESXi, or Hyper-V installed and configures the boot loader accordingly.</p>
+            </li>
+          </ol>
+          <h3>Exiting a CVM from Phoenix</h3>
+          <p>For CVMs, the exit method depends on how they entered Phoenix:</p>
+          <ul>
+            <li>
+              <strong>LCM-initiated Phoenix:</strong> Use the LCM node recovery script to return the CVM to service - see <a href="http://portal.nutanix.com/kb/9437">KB-9437</a>
+            </li>
+            <li>
+              <strong>Manual Phoenix:</strong> Manually change the boot ISOs back to normal CVM operation - see <a href="http://portal.nutanix.com/kb/9584">KB-9584</a>
+            </li>
+          </ul>
+          <ac:structured-macro ac:macro-id="fe280df1-6fa1-43b6-9fdf-4e58e5010c3c" ac:name="info" ac:schema-version="1">
+            <ac:parameter ac:name="title">Next Steps</ac:parameter>
+            <ac:rich-text-body>
+              <p>After exiting Phoenix, verify that the system boots normally and all services start correctly. Monitor for any recurring issues that might indicate the root cause wasn't fully resolved.</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+        </ac:rich-text-body>
+      </ac:structured-macro>
+      <h2>Gathering Logs from Failed Operations</h2>
+      <p>Collecting diagnostic logs is crucial for troubleshooting failed imaging or repair operations. This section covers log collection methods, network setup, and transfer procedures.</p>
+      <ac:structured-macro ac:macro-id="e95753fc-b9b2-4a54-93e1-4c806a1ab543" ac:name="expand" ac:schema-version="1">
+        <ac:parameter ac:name="title">Log Collection Procedures</ac:parameter>
+        <ac:rich-text-body>
+          <ac:structured-macro ac:macro-id="1e9b42d0-d54b-419a-8664-18192840a782" ac:name="info" ac:schema-version="1">
+            <ac:parameter ac:name="title">Automated Log Collection</ac:parameter>
+            <ac:rich-text-body>
+              <p>
+                <strong>Quick Option:</strong> Use the lcm_log_collector script (<a href="http://portal.nutanix.com/kb/7288">KB-7288</a>) to automatically gather logs from Phoenix if you can connect via the CVM's external IP address. This works even if LCM didn't initiate the Phoenix boot.</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <h3>Manual Log Collection Steps</h3>
+          <ol>
+            <li>
+              <strong>Setup Network Connectivity:</strong> Follow <a href="http://portal.nutanix.com/kb/5346">KB-5346</a> to establish network connectivity between your Phoenix/Rescue Shell and other systems</li>
+            <li>
+              <strong>Fix SSH Key Conflicts:</strong> If you assigned the local host or CVM's IP address to the Phoenix/Rescue Shell instance, remove the old SSH key from your working CVM to avoid authentication conflicts.<ac:structured-macro ac:macro-id="c3d461cd-7c46-4397-9a4c-8e8759400b80" ac:name="expand" ac:schema-version="1">
+                <ac:parameter ac:name="title">SSH Key Conflict Example</ac:parameter>
+                <ac:rich-text-body>
+                  <p>You'll see output like this when SSH keys conflict:</p>
+                  <ac:structured-macro ac:macro-id="ebfac1a5-e07e-44ea-abec-474e749ebaa0" ac:name="noformat" ac:schema-version="1">
+                    <ac:plain-text-body><![CDATA[nutanix@CVM:~/data/installer$ ssh root@xx.yy.zz.59
+FIPS mode initialized
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+Someone could be eavesdropping on you right now (man-in-the-middle attack)!
+It is also possible that a host key has just been changed.
+The fingerprint for the ED25519 key sent by the remote host is
+sha1:b4:69:c5:6e:51:e7:a8:d3:cb:fb:6d:1e:cc:48:33:43:1f:a5:b1:6e.
+Please contact your system administrator.
+Add correct host key in /home/nutanix/.ssh/known_hosts to get rid of this message.
+Offending ECDSA key in /home/nutanix/.ssh/known_hosts:6
+Password authentication is disabled to avoid man-in-the-middle attacks.
+Keyboard-interactive authentication is disabled to avoid man-in-the-middle attacks.
+Permission denied (publickey,password,keyboard-interactive).]]></ac:plain-text-body>
+                  </ac:structured-macro>
+                  <p>
+                    <br/>b. Remove the key from the known_hosts file that matches the IP address you are trying to connect to.</p>
+                  <ac:structured-macro ac:macro-id="940b9be1-54a7-43d4-bf15-e704912903ca" ac:name="noformat" ac:schema-version="1">
+                    <ac:plain-text-body><![CDATA[nutanix@CVM:~/data/installer$ vi /home/nutanix/.ssh/known_hosts
+xx.yy.zz.59 ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAEsEYsEq0gbIJj6IyZc3MSRI2l8Pjdbm2MC9GQxTHTmnX0QwSu9gBChku7KTAyRM4Ka7k4uj3LgOMMU5RRTqU5ujQHznd8a0bw4Q+p2cO74PYIX5CtQlDX099TadPnHEmVW7Mhqn97QPHPLg28XaJXfZqzMkOfOqgbVI6jO9QXjFV6k6g==]]></ac:plain-text-body>
+                  </ac:structured-macro>
+                  <p>
+                    <br/>c. Now you should be able to login to the address. Use the username "root" and password "nutanix/4u".</p>
+                  <ac:structured-macro ac:macro-id="76eb22cf-6084-4b5a-83da-af4bcb99d5b2" ac:name="noformat" ac:schema-version="1">
+                    <ac:plain-text-body><![CDATA[nutanix@CVM:~/data/installer$ ssh root@xx.yy.zz.59
+FIPS mode initialized
+Warning: Permanently added 'xx.yy.zz.59' (ED25519) to the list of known hosts.
+root@xx.yy.zz.59's password:
+-bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8)
+rescue ~ #]]></ac:plain-text-body>
+                  </ac:structured-macro>
+                </ac:rich-text-body>
+              </ac:structured-macro>
+            </li>
+            <li>
+              <p>Identify the Installer log. This contains logging on the boot-up process for Phoenix as well as on any installation/configurations/repairs that were invoked from the Nutanix Installer Menu.</p>
+              <ac:structured-macro ac:macro-id="a2b67591-016b-4831-8d66-0a4571d56747" ac:name="noformat" ac:schema-version="1">
+                <ac:plain-text-body><![CDATA[phoenix /phoenix # ls -l /phoenix/installer.log
+-rw-r--r-- 1 root root 1621 Mar 29 20:46 /phoenix/installer.log]]></ac:plain-text-body>
+              </ac:structured-macro>
+            </li>
+            <li>
+              <p>Copy the Installer Log to a working CVM.</p>
+              <ac:structured-macro ac:macro-id="0f89d018-7840-4919-bae2-a074daa7f763" ac:name="noformat" ac:schema-version="1">
+                <ac:plain-text-body><![CDATA[phoenix /phoenix # scp /phoenix/installer.log nutanix@xx.yy.zz.28:/home/nutanix/
+The authenticity of host 'xx.yy.zz.28 (xx.yy.zz.28)' can't be established.
+RSA key fingerprint is SHA256:qfJDz5V/cBvLGfq2lsAN2NW2KVmg1iotK+te9tG6LmA.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'xx.yy.zz.28' (RSA) to the list of known hosts.
+Nutanix Controller VM
+nutanix@xx.yy.zz.28's password:
+installer.log                                                                                                                                                                                    100% 1621     4.2MB/s   1.6KB/s   00:00]]></ac:plain-text-body>
+              </ac:structured-macro>
+            </li>
+            <li>
+              <p>Verify that the log is intact on the target CVM.</p>
+              <ac:structured-macro ac:macro-id="fbe082b2-76ae-4ae0-9e8d-956a9d1052ef" ac:name="noformat" ac:schema-version="1">
+                <ac:plain-text-body><![CDATA[phoenix /phoenix # ssh nutanix@xx.yy.zz.28
+Nutanix Controller VM
+nutanix@xx.yy.zz.28's password:
+Last login: Wed Mar 28 21:13:08 2018
+nutanix@CVM:xx.yy.zz.28:~$ ls -l installer.log
+-rw-r--r--. 1 nutanix nutanix 1621 Mar 29 21:05 installer.log]]></ac:plain-text-body>
+              </ac:structured-macro>
+            </li>
+          </ol>
+          <h4>Other Important Logs to Collect:</h4>
+          <p>phoenix.log - This details the Phoenix bring-up process and can be crucial for understanding potential bugs in Foundation.</p>
+          <ac:structured-macro ac:macro-id="171b77d4-27eb-4ddd-91ab-efbf790cf7fe" ac:name="noformat" ac:schema-version="1">
+            <ac:plain-text-body><![CDATA[phoenix ~ # ls -l /tmp/phoenix.log
+-rw-r--r-- 1 root root 61583 Apr 17 16:14 /tmp/phoenix.log]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <p>Dmesg - These logs show the kernel-level interaction between Phoenix, Linux, and the Hardware. Collect the following when engaging Engineering for an issues involving Phoenix:</p>
+          <ul>
+            <li>
+              <p>/tmp/dmesg_out - Contains the initial dmesg output tracking the boot-up process for Phoenix.</p>
+              <ac:structured-macro ac:macro-id="26afc5fd-c520-40ba-8a87-577fdc8ab3ab" ac:name="noformat" ac:schema-version="1">
+                <ac:plain-text-body><![CDATA[phoenix ~ # ls -l /tmp/dmesg_out
+-rw-r--r-- 1 root root 61583 Apr 17 16:14 /tmp/dmesg_out]]></ac:plain-text-body>
+              </ac:structured-macro>
+            </li>
+            <li>
+              <p>dmesg - The most recent output of dmesg needs be output into a file and the copied off in order to be preserved.</p>
+              <ac:structured-macro ac:macro-id="3997fced-1c65-4d12-a9a3-8511d991a582" ac:name="noformat" ac:schema-version="1">
+                <ac:plain-text-body><![CDATA[phoenix ~ # dmesg > dmesg.out
+phoenix ~ # ls -l dmesg.out
+-rw-r--r-- 1 root root 77502 Apr 17 18:10 dmesg.out]]></ac:plain-text-body>
+              </ac:structured-macro>
+            </li>
+          </ul>
+        </ac:rich-text-body>
+      </ac:structured-macro>
+      <h2>Storage Access Troubleshooting</h2>
+      <p>When storage issues prevent normal system operation, Phoenix and Rescue shells provide direct access to diagnose disk health, check RAID status, and troubleshoot hardware problems.</p>
+      <ac:structured-macro ac:macro-id="a9d69666-68ae-45ba-bbd7-d308c4601e12" ac:name="expand" ac:schema-version="1">
+        <ac:parameter ac:name="title">Complete Storage Diagnostics Guide</ac:parameter>
+        <ac:rich-text-body>
+          <ac:structured-macro ac:macro-id="66196888-e25c-4e16-8a0b-7b4be9c31992" ac:name="info" ac:schema-version="1">
+            <ac:parameter ac:name="title">Storage Troubleshooting Capabilities</ac:parameter>
+            <ac:rich-text-body>
+              <p>From Phoenix/Rescue shells, you can diagnose both traditional SATA/SAS drives and modern NVMe storage. Use the commands and utilities from <a href="https://portal.nutanix.com/page/documents/kbs/details?targetId=kA07V0000004V43SAE#helpful_commands">KB-15461</a> for NVMe-specific troubleshooting.</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <h3>Storage Diagnostic Workflow</h3>
+          <h4>See What Disk Devices are Visible to the Host</h4>
+          <ac:structured-macro ac:macro-id="cd2e1c8e-14f1-41ff-b468-d4f75afb9580" ac:name="noformat" ac:schema-version="1">
+            <ac:plain-text-body><![CDATA[phoenix ~ # lsscsi
+[0:0:0:0]    disk    ATA      INTEL SSDSC2BX80 0150  /dev/sda
+[0:0:1:0]    disk    ATA      INTEL SSDSC2BX80 0150  /dev/sdb
+[0:0:2:0]    disk    ATA      ST2000NX0253     SN02  /dev/sdc
+[0:0:3:0]    disk    ATA      ST2000NX0253     SN02  /dev/sdd
+[0:0:4:0]    disk    ATA      ST2000NX0253     SN02  /dev/sde
+[0:0:5:0]    disk    ATA      ST2000NX0253     SN02  /dev/sdf
+[1:0:0:0]    cd/dvd  ATEN     Virtual CDROM    YS0J  /dev/sr0
+[5:0:0:0]    disk    ATA      SATADOM-SL 3IE3  301N  /dev/sdg]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <h4>Run Smartctl Against your Disks to Make Sure they Pass the Health Check</h4>
+          <ac:structured-macro ac:macro-id="89fa1feb-7192-4ae1-8aa9-226fbb7b6a22" ac:name="noformat" ac:schema-version="1">
+            <ac:plain-text-body><![CDATA[rescue / # /usr/sbin/smartctl -x /dev/sdX -T permissive]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <h4>Verify that Partitions on CVM boot drive(s) contain the expected Size, Partition Table, and Filesystem</h4>
+          <ac:structured-macro ac:macro-id="7ef60c72-ee9b-4378-a011-dcb3b0fd2458" ac:name="noformat" ac:schema-version="1">
+            <ac:plain-text-body><![CDATA[phoenix ~ # parted /dev/sda
+GNU Parted 3.2
+Using /dev/sda
+Welcome to GNU Parted! Type 'help' to view a list of commands.
+(parted) p
+Model: ATA INTEL SSDSC2BX80 (scsi)
+Disk /dev/sda: 800GB
+Sector size (logical/physical): 512B/4096B
+Partition Table: gpt
+Disk Flags:
+Number  Start   End     Size    File system  Name     Flags
+ 1      1049kB  10.7GB  10.7GB  ext4         primary
+ 2      10.7GB  21.5GB  10.7GB  ext4         primary
+ 3      21.5GB  64.4GB  42.9GB  ext4         primary
+ 4      64.4GB  720GB   656GB   ext4         primary
+
+(parted) quit]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <h4>List all Disk Partitions and RAID Groups (only expected on Dual SSD or All-Flash platforms)</h4>
+          <ac:structured-macro ac:macro-id="0eee9505-a67a-49f3-bdd6-1b5723c88f95" ac:name="noformat" ac:schema-version="1">
+            <ac:plain-text-body><![CDATA[phoenix ~ # lsblk
+NAME    MAJ:MIN RM   SIZE RO TYPE  MOUNTPOINT
+sdf       8:80   0   1.8T  0 disk
+`-sdf1    8:81   0   1.8T  0 part
+sdd       8:48   0   1.8T  0 disk
+`-sdd1    8:49   0   1.8T  0 part
+sdb       8:16   0 745.2G  0 disk
+|-sdb4    8:20   0 610.6G  0 part
+|-sdb2    8:18   0    10G  0 part
+| `-md1   9:1    0    10G  0 raid1
+|-sdb3    8:19   0    40G  0 part
+| `-md2   9:2    0    40G  0 raid1
+`-sdb1    8:17   0    10G  0 part
+  `-md0   9:0    0    10G  0 raid1
+sr0      11:0    1   994M  0 rom   /mnt/local
+sdg       8:96   0  59.6G  0 disk
+|-sdg9    8:105  0   2.5G  0 part
+|-sdg7    8:103  0   110M  0 part
+|-sdg5    8:101  0   250M  0 part
+|-sdg1    8:97   0     4M  0 part
+|-sdg10   8:106  0  52.3G  0 part
+|-sdg8    8:104  0   286M  0 part
+|-sdg6    8:102  0   250M  0 part
+`-sdg2    8:98   0     4G  0 part
+sde       8:64   0   1.8T  0 disk
+`-sde1    8:65   0   1.8T  0 part
+sdc       8:32   0   1.8T  0 disk
+`-sdc1    8:33   0   1.8T  0 part
+sda       8:0    0 745.2G  0 disk
+|-sda4    8:4    0 610.6G  0 part
+|-sda2    8:2    0    10G  0 part
+| `-md1   9:1    0    10G  0 raid1
+|-sda3    8:3    0    40G  0 part
+| `-md2   9:2    0    40G  0 raid1
+`-sda1    8:1    0    10G  0 part
+  `-md0   9:0    0    10G  0 raid1]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <h4>Check if RAID Groups are in a Active/Clean State</h4>
+          <p>
+            <em>In this example only md0 is listed, but this command should give you the status of all 3 (md0, md1, md2).</em>
+          </p>
+          <ac:structured-macro ac:macro-id="8f13491e-cac8-4db6-bf18-c88780eeae33" ac:name="noformat" ac:schema-version="1">
+            <ac:plain-text-body><![CDATA[phoenix ~ # mdadm --detail /dev/md[012]
+/dev/md0:
+        Version : 1.1
+  Creation Time : Tue Mar 27 18:07:59 2018
+     Raid Level : raid1
+     Array Size : 10476544 (9.99 GiB 10.73 GB)
+  Used Dev Size : 10476544 (9.99 GiB 10.73 GB)
+   Raid Devices : 2
+  Total Devices : 2
+    Persistence : Superblock is persistent
+  Intent Bitmap : Internal
+    Update Time : Thu Mar 29 20:46:20 2018
+          State : clean
+ Active Devices : 2
+Working Devices : 2
+ Failed Devices : 0
+  Spare Devices : 0
+           Name : phoenix:0  (local to host phoenix)
+           UUID : c6809301:7fe536b5:2210ce61:6c29032b
+         Events : 24
+    Number   Major   Minor   RaidDevice State
+       0       8        1        0      active sync   /dev/sda1
+       1       8       17        1      active sync   /dev/sdb1]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <h4>Looking for Hardware Errors in dmesg of Phoenix Instance</h4>
+          <ac:structured-macro ac:macro-id="c3ecc162-89d1-4609-8528-00c5d38984ce" ac:name="noformat" ac:schema-version="1">
+            <ac:plain-text-body><![CDATA[phoenix /phoenix # dmesg | tail
+[  484.766289] IPv6: ADDRCONF(NETDEV_UP): eth2: link is not ready
+[  484.766291] 8021q: adding VLAN 0 to HW filter on device eth2
+[  484.834131] ixgbe 0000:81:00.0 eth2: detected SFP+: 3
+[  484.996130] ixgbe 0000:81:00.0 eth2: NIC Link is Up 10 Gbps, Flow Control: RX/TX
+[  484.996256] IPv6: ADDRCONF(NETDEV_CHANGE): eth2: link becomes ready
+[  487.207452] ixgbe 0000:81:00.1: registered PHC device on eth3
+[  487.396355] IPv6: ADDRCONF(NETDEV_UP): eth3: link is not ready
+[  487.396356] 8021q: adding VLAN 0 to HW filter on device eth3
+[  892.219884] EXT4-fs (md0): mounted filesystem with ordered data mode. Opts: (null)
+[ 1055.967437] EXT4-fs (md1): mounted filesystem with ordered data mode. Opts: (null)]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <h4>Check that all the Disks are connected at the proper Link Speeds and that there are No Errors Incrementing on the Midplane Interfaces</h4>
+          <ac:structured-macro ac:macro-id="aecdf64d-342d-4306-b35c-f6354972403f" ac:name="note" ac:schema-version="1">
+            <ac:rich-text-body>
+              <p>The command to run lsiutil in <strong>Phoenix</strong> is as follows:</p>
+              <p>phoenix ~ # /opt/bin/lsiutil</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <ac:structured-macro ac:macro-id="a79fd926-13e9-4372-97b4-115f4e322308" ac:name="noformat" ac:schema-version="1">
+            <ac:plain-text-body><![CDATA[rescue ~ # /mnt/cdrom/lib/lsi-sas/lsiutil -p 1 -i
+LSI Logic MPT Configuration Utility, Version 1.70, July 30, 2013
+modprobe: FATAL: Module mptctl not found in directory /lib/modules/4.10.1
+/bin/mknod: /dev/mptctl: File exists
+1 MPT Port found
+==============================================================================
+ioc0              LSI Logic SAS3008 C0     MPT 205   Firmware 0a000700   IOC 0
+Seg/Bus/Dev/Fun    Board Name       Board Assembly   Board Tracer
+ 0   3   0   0     LSI3008-IT
+Current Port State
+------------------
+SAS3008's links are 6.0 G, 6.0 G, 6.0 G, 6.0 G, 6.0 G, 6.0 G, down, down
+Software Version Information
+----------------------------
+Current active firmware version is 0a000700 (10.00.07)
+Firmware image's version is MPTFW-10.00.07.00-IT
+  LSI Logic
+  Not Packaged Yet
+x86 BIOS image's version is MPT3BIOS-8.25.00.00 (2015.08.06)
+EFI BIOS image's version is 12.00.00.00
+Firmware Settings
+-----------------
+SAS WWID:                       500304801c1c1701
+Multi-pathing:                  Disabled
+SATA Native Command Queuing:    Enabled
+SATA Write Caching:             Disabled
+SATA Maximum Queue Depth:       128
+SAS Max Queue Depth, Narrow:    256
+SAS Max Queue Depth, Wide:      256
+Device Missing Report Delay:    0 seconds
+Device Missing I/O Delay:       0 seconds
+Phy Parameters for Phynum:      0    1    2    3    4    5    6    7
+  Link Enabled:                 Yes  Yes  Yes  Yes  Yes  Yes  Yes  Yes
+  Link Min Rate:                3.0  3.0  3.0  3.0  3.0  3.0  3.0  3.0
+  Link Max Rate:                12.0 12.0 12.0 12.0 12.0 12.0 12.0 12.0
+  SSP Initiator Enabled:        Yes  Yes  Yes  Yes  Yes  Yes  Yes  Yes
+  SSP Target Enabled:           No   No   No   No   No   No   No   No
+  Port Configuration:           Auto Auto Auto Auto Auto Auto Auto Auto
+Interrupt Coalescing:           Enabled, timeout is 10 us, depth is 4]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <p class="auto-cursor-target">
+            <br/>
+          </p>
+          <ac:structured-macro ac:macro-id="656de47b-a33b-40ed-bb0f-8f4614151d3d" ac:name="noformat" ac:schema-version="1">
+            <ac:plain-text-body><![CDATA[rescue ~ # /mnt/cdrom/lib/lsi-sas/lsiutil -p 1 -a 12,0,0,0 20
+LSI Logic MPT Configuration Utility, Version 1.70, July 30, 2013
+modprobe: FATAL: Module mptctl not found in directory /lib/modules/4.10.1
+/bin/mknod: /dev/mptctl: File exists
+1 MPT Port found
+     Port Name         Chip Vendor/Type/Rev    MPT Rev  Firmware Rev  IOC
+ 1.  ioc0              LSI Logic SAS3008 C0      205      0a000700     0
+Diagnostics menu, select an option:  [1-99 or e/p/w or 0 to quit] 12
+Adapter Phy 0:  Link Up, No Errors
+Adapter Phy 1:  Link Up, No Errors
+Adapter Phy 2:  Link Up, No Errors
+Adapter Phy 3:  Link Up, No Errors
+Adapter Phy 4:  Link Up, No Errors
+Adapter Phy 5:  Link Up, No Errors
+Adapter Phy 6:  Link Down, No Errors
+Adapter Phy 7:  Link Down, No Errors
+Diagnostics menu, select an option:  [1-99 or e/p/w or 0 to quit] 0]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+        </ac:rich-text-body>
+      </ac:structured-macro>
+      <h2>Mounting System Partitions for Log Access</h2>
+      <p>When you need to inspect system files or access logs from a non-booting system, you can mount the root and home partitions directly from Phoenix or Rescue shells.</p>
+      <ac:structured-macro ac:macro-id="5f5f2dbc-c260-4e70-bca6-d1550787e241" ac:name="expand" ac:schema-version="1">
+        <ac:parameter ac:name="title">Complete Partition Mounting Guide</ac:parameter>
+        <ac:rich-text-body>
+          <ac:structured-macro ac:macro-id="e48e1c84-6d35-4c6c-a243-398f9cd4a368" ac:name="info" ac:schema-version="1">
+            <ac:parameter ac:name="title">When to Use This Procedure</ac:parameter>
+            <ac:rich-text-body>
+              <p>Mount system partitions when you need to access configuration files, system logs, or user data from a system that won't boot normally. This is essential for root cause analysis and data recovery.</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <h3>Step-by-Step Mounting Process</h3>
+          <h4>For Dual SSD &amp; All Flash Systems</h4>
+          <ol>
+            <li>
+              <strong>Assemble RAID Groups:</strong> First, reconstruct the RAID arrays so partitions can be accessed:<ac:structured-macro ac:macro-id="c4300763-e9c3-440a-8552-62826fb48d36" ac:name="noformat" ac:schema-version="1">
+                <ac:plain-text-body><![CDATA[phoenix ~ # mdadm --assemble --scan --run
+mdadm: failed to get exclusive lock on mapfile
+mdadm: No arrays found in config file or automatically]]></ac:plain-text-body>
+              </ac:structured-macro>
+              <p>
+                <br/>
+                <strong>Alternative Method</strong> <br/>
+                <br/>Run this command to automatically mount all RAID parititions on a multi-SSD platform node. Replace the "?" in the command below with number of the raid groups visible in the output of "lsblk". For example, md125. Run the command again for each of the three raid groups so that all are mounted under the /mnt directory.</p>
+              <ac:structured-macro ac:macro-id="fd8bcf9d-c50e-417f-946b-15b920eabd51" ac:name="noformat" ac:schema-version="1">
+                <ac:plain-text-body><![CDATA[for d in /dev/md?; do mkdir -p ${d/dev/mnt}; mount $d ${d/dev/mnt}; done]]></ac:plain-text-body>
+              </ac:structured-macro>
+              <p>
+                <br/>Find out which md RAID group contains the .nutanix_active_svm_paritition marker file:</p>
+              <ac:structured-macro ac:macro-id="c73ab90b-0c69-42da-b736-c92988f1afdf" ac:name="noformat" ac:schema-version="1">
+                <ac:plain-text-body><![CDATA[grep . /mnt/md*/.nutanix*]]></ac:plain-text-body>
+              </ac:structured-macro>
+              <p>
+                <br/>
+                <br/>For <strong>Single-SSD</strong> platforms, use fdisk to find the drive with two 10GB partitions. These are your boot and alt-boot partitions. The 40G partition is /home.</p>
+              <ac:structured-macro ac:macro-id="e0985739-dab2-4b13-b1cc-9ccde154da33" ac:name="noformat" ac:schema-version="1">
+                <ac:plain-text-body><![CDATA[phoenix ~ # fdisk -l /dev/sda
+Disk /dev/sda: 745.2 GiB, 800166076416 bytes, 1562824368 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 4096 bytes
+I/O size (minimum/optimal): 4096 bytes / 4096 bytes
+Disklabel type: gpt
+Disk identifier: 837B0E5F-348F-4A63-B71F-CFDB9C9BA6CE
+Device         Start        End    Sectors   Size Type
+/dev/sda1       2048   20971519   20969472    10G Linux filesystem
+/dev/sda2   20973568   41943039   20969472    10G Linux filesystem
+/dev/sda3   41945088  125829119   83884032    40G Linux filesystem
+/dev/sda4  125831168 1406251007 1280419840 610.6G Linux filesystem]]></ac:plain-text-body>
+              </ac:structured-macro>
+              <p class="auto-cursor-target">
+                <br/>
+                <strong>Alternative Method<br/>
+                  <br/>
+                </strong>Replace "sdX" with the device name for the boot SSD in the following command. It will automatically mount the infrastructure partitions.</p>
+              <ac:structured-macro ac:macro-id="175565b9-4c61-4975-9772-a80ee0071be2" ac:name="noformat" ac:schema-version="1">
+                <ac:plain-text-body><![CDATA[for d in /dev/sdX{1..3}; do mkdir -p ${d/dev/mnt}; mount $d ${d/dev/mnt}; done]]></ac:plain-text-body>
+              </ac:structured-macro>
+              <p class="auto-cursor-target">
+                <br/>
+                <br/>
+              </p>
+            </li>
+            <li>
+              <p>Create a three temporary directories where can mount each of the separate boot partitions/RAID group.</p>
+              <ac:structured-macro ac:macro-id="a0cfa470-d417-4584-b318-5ced1e07811a" ac:name="noformat" ac:schema-version="1">
+                <ac:plain-text-body><![CDATA[phoenix / # cd tmp
+
+phoenix /tmp # ls -l
+total 68
+-rw-r--r-- 1 root root 65150 Mar 29 20:44 dmesg_out
+-rw-r--r-- 1 root root   475 Mar 29 20:46 fruinfo.txt
+-rw-r--r-- 1 root root     0 Mar 29 20:46 no_mdadm_scan
+drwx------ 2 root root    40 Mar 29 20:46 tmpKTykx1
+drwx------ 2 root root    40 Mar 29 20:46 tmpjtLQ0K
+
+phoenix /tmp # mkdir boot1
+
+phoenix /tmp # mkdir boot2
+
+phoenix /tmp # mkdir home]]></ac:plain-text-body>
+              </ac:structured-macro>
+            </li>
+            <li>
+              <p>Mount the each of the 10GB boot partitions/RAID groups to one of the temporary directories so that you can browse their contents.</p>
+              <ac:structured-macro ac:macro-id="13b6d327-07f8-4eda-a59b-82853a0846e1" ac:name="noformat" ac:schema-version="1">
+                <ac:plain-text-body><![CDATA[Multi-SSD/NVMe Example:
+phoenix /tmp # mount /dev/md0 /tmp/boot1
+phoenix /tmp # mount /dev/md1 /tmp/boot2
+phoenix /tmp # mount /dev/md2 /tmp/home
+
+Single SSD Example:
+phoenix /tmp # mount /dev/sda1 /tmp/boot1
+phoenix /tmp # mount /dev/sda2 /tmp/boot2
+phoenix /tmp # mount /dev/sda3 /tmp/home]]></ac:plain-text-body>
+              </ac:structured-macro>
+            </li>
+            <li>
+              <p>Now you can change directory into each of mount points you created to browse the contents. For example, below I am looking at the boot and alt-boot partitions/mds to see which contains the active AOS image.</p>
+              <ac:structured-macro ac:macro-id="a98d0b8c-15ef-4643-bbc7-aec5d75b7102" ac:name="noformat" ac:schema-version="1">
+                <ac:plain-text-body><![CDATA[phoenix /tmp # cd /tmp/boot1/
+
+phoenix /tmp/boot1 # ls -al
+total 108
+-rw-r--r--  1 root root   613 Mar 27 18:09 .nutanix_active_svm_partition.old
+
+phoenix /tmp/boot1 # cat etc/nutanix/release_version
+el7.3-release-euphrates-5.5.0.2-stable-ef410ac9783225cb380e8565de9c0b8854facf6c]]></ac:plain-text-body>
+              </ac:structured-macro>
+              <p class="auto-cursor-target">
+                <br/>
+              </p>
+              <ac:structured-macro ac:macro-id="01ee3774-2b25-482c-92c5-854dfa2d701c" ac:name="noformat" ac:schema-version="1">
+                <ac:plain-text-body><![CDATA[phoenix /tmp/ # cd /tmp/boot2/
+
+phoenix /tmp/boot2 # ls -al
+total 108
+-rw-r--r--  1 root root   614 Mar 29 15:51 .nutanix_active_svm_partition
+
+phoenix /tmp/boot2 # cat etc/nutanix/release_version
+el7.3-release-euphrates-5.5.0.6-stable-14bd63735db09b1c9babdaaf48d062723137fc46]]></ac:plain-text-body>
+              </ac:structured-macro>
+              <h1 class="auto-cursor-target">
+                <ac:inline-comment-marker ac:ref="80fa162b-8099-43b6-882d-ab7402a55c11">Troubleshooting the CVM using cvm_diagnose</ac:inline-comment-marker>
+              </h1>
+            </li>
+          </ol>
+          <p>
+            <br/>
+          </p>
+          <h2>
+            <span style="font-size: 24.0px;letter-spacing: -0.01em;">Overview</span>
+          </h2>
+          <p>The <strong>cvm_diagnose</strong> script was introduced in <strong>AOS</strong> <strong>6.5.4</strong>, <strong>6.6.1</strong>, and <strong>6.7+</strong> (via <a href="https://jira.nutanix.com/browse/ENG-448579">ENG-448579</a>) and automates the process of booting an unhealthy CVM into the <u>svmrescue shell</u> (<strong>-b</strong>) and configuring <u>network access</u> to it for troubleshooting purposes. With SSH network access enabled, you will benefit from the ability to copy and paste, which makes sharing the data much easier in your case notes or over Slack. The same script is also capable of reversing these actions (<strong>-r</strong>) and configuring the CVM normally so that it can boot into AOS.</p>
+          <p>All three hypervisors are supported: AHV, ESXi, and Hyper-v</p>
+          <p>
+            <a href="http://git-mirror.dyn.nutanix.com/?p=main.git;a=commitdiff;h=a92150c8b31eff8cd049f388cd3d97e1a12dd23b;hp=b5e32e78923cdfef40f2e91ca1515ce3ac95fb03">Look at the Code</a>
+          </p>
+          <p>
+            <a href="https://nutanix.zoom.us/rec/share/8ItibZZh4YSlYXxSlRrmfXEEX3wZ56_TiIDsfg5sM9sXDe12GpP4mIiilmp0Vow2.p4Q1eMD5Jk_7mdLH?startTime=1685982723000">Training Video on Debugging CVM in reboot loop and using cvm_diagnose script</a> (61 min)<br/>Passcode: vje6p5?$</p>
+          <h3>What does it do?</h3>
+          <ol>
+            <li>Generates an svmrescue.iso from the CVM installer directory and injects the unhealthy CVMs network information into it. By default, this is a slim image that will give you a CentOS shell as well as an assortment of Linux utilities. If you need to potentially recreate the CVM, the flag (--full_nos_bundle) can be used so that the full AOS binary is included in the svmrescue.iso. During AOS upgrades, this will be the <em>target</em> AOS version that is being upgraded to.</li>
+            <li>Unplug the regular boot ISO from the CVM (AHV - svmboot.iso; ESXi ServiceVM_Centos.iso) and attach the svmrescue.iso</li>
+            <li>Powers on the CVM</li>
+            <li>Confirms that the unhealthy CVM has successfully booted into the svmrescue shell and that it is responding on the network over its usual IP address</li>
+            <li>Provides a network-accessible shell for debugging by Support/Engineering</li>
+            <li>Restoring the original configuration so that the CVM can try to boot back into AOS</li>
+          </ol>
+          <h3>When should I use cvm_diagnose?</h3>
+          <p>A CVM is considered unhealth if...</p>
+          <ul>
+            <li>It is stuck in a reboot loop</li>
+            <li>It is stuck in Emergency Mode, dracut prompt, or some other low-level shell</li>
+          </ul>
+          <p>
+            <br/>
+          </p>
+          <ac:structured-macro ac:macro-id="657bc34d-ed42-42a5-b274-741dc252c9f5" ac:name="note" ac:schema-version="1">
+            <ac:parameter ac:name="title">Note</ac:parameter>
+            <ac:rich-text-body>
+              <p>This script will <strong>NOT</strong> work in cases where the hypervisor refuses to power-on the CVM.</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <p>For a better understanding of the <strong>CVM Startup Process</strong>, refer to this documentation:</p>
+          <ul>
+            <li>
+              <a href="https://docs.google.com/document/d/1-v-0OZFpgfP_bXQ5rz8hVyLEAdOChHYAqaBY-WBu7uo/edit?usp=sharing">AOS 6.5.x and earlier, AHV+ESXi Hypervisors: CVM Startup Process Training</a>
+            </li>
+            <li>
+              <a href="https://confluence.eng.nutanix.com:8443/display/~aisiri.rshankar/How+a+CVM+Boots">How a CVM Boots</a>
+            </li>
+            <li>
+              <a href="https://nutanixinc-my.sharepoint.com/:p:/g/personal/yash_mehrotra_nutanix_com/ETrobZvlclNOoeq9zd1ttQIBjXUCnM1Yh-HASw6-_TqJ-w?e=BOhqJ3">AOS 6.6.x and later, svmboot-v2 single-phase CVM startup process (FEAT-13293)</a>
+              <ul>
+                <li>
+                  <strong>Note:</strong> A CVM using AOS 6.6+ that has been <a href="https://confluence.eng.nutanix.com:8443/display/STK/SVM+Rescue%3A+Re-Creating+a+CVM">manually rescued</a> may fail to boot up due to <a href="https://jira.nutanix.com/browse/ENG-535080">ENG-535080</a>. The single_ssd_repair workflow should not be affected by this issue.</li>
+              </ul>
+            </li>
+          </ul>
+          <h3>How long will it take to load the shell?</h3>
+          <p>1 minute</p>
+          <h3>What can I do from svmrescue shell?</h3>
+          <p>The cvm_diagnose script can boot an unhealthy CVM into a CentOS shell that has access to a variety of utilities that can be used to:</p>
+          <ol>
+            <li>
+              <a href="https://confluence.eng.nutanix.com:8443/display/STK/Debugging+in+Phoenix+or+Rescue+Shells#DebugginginPhoenixorRescueShells-Issue#3:StorageAccessTroubleshooting">Check disk and HBA health</a>
+            </li>
+            <li>
+              <a href="https://confluence.eng.nutanix.com:8443/display/STK/Debugging+in+Phoenix+or+Rescue+Shells#DebugginginPhoenixorRescueShells-Issue#4:PhoenixisunabletoreadAOSVersion">Read or retrieve CVM kernel, service, and sysstats logs</a>
+            </li>
+            <li>
+              <a href="https://nutanix.my.salesforce.com/kA0600000008iJw">Identify and fix CVM boot raid issues (KB-2174)</a>
+            </li>
+            <li>
+              <a href="https://nutanix.my.salesforce.com/kA07V000000H4F7">Identify and fix filesystem corruptions (KB-13931)</a>
+            </li>
+            <li>
+              <ac:emoticon ac:name="minus"/> <a href="https://confluence.eng.nutanix.com:8443/display/STK/SVM+Rescue%3A+Re-Creating+a+CVM">Recreate the CVM from scratch (aka Rescue)</a> with --full_nos_bundle flag</li>
+          </ol>
+          <p>
+            <br/>
+          </p>
+          <ac:structured-macro ac:macro-id="368a6551-fd85-49ec-90a8-db7bcf00a4b5" ac:name="warning" ac:schema-version="1">
+            <ac:parameter ac:name="title">Warning</ac:parameter>
+            <ac:rich-text-body>
+              <p>Make sure to heed <a href="https://confluence.eng.nutanix.com:8443/display/STK/SVM+Rescue%3A+Re-Creating+a+CVM">all documented warnings</a> and consult with a Sr. SRE or STL before recreating/rescuing a CVM.</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+        </ac:rich-text-body>
+      </ac:structured-macro>
+      <p>
+        <br/>
+      </p>
+      <h2>How to use cvm_diagnose</h2>
+      <p>The cvm_diagnose script is a powerful tool for troubleshooting unhealthy CVMs by booting them into a rescue shell environment. This comprehensive guide covers the complete workflow from diagnosis to resolution.</p>
+      <ac:structured-macro ac:macro-id="50385c6e-60f8-428b-a68b-8b74f936695f" ac:name="expand" ac:schema-version="1">
+        <ac:parameter ac:name="title">Complete cvm_diagnose Guide</ac:parameter>
+        <ac:rich-text-body>
+          <ac:structured-macro ac:macro-id="c8f721e0-f78e-4052-abab-a0e86a18eeb3" ac:name="info" ac:schema-version="1">
+            <ac:parameter ac:name="title">What is cvm_diagnose?</ac:parameter>
+            <ac:rich-text-body>
+              <p>The cvm_diagnose script allows you to boot an unhealthy CVM into a specialized rescue environment where you can perform advanced diagnostics, access logs, check hardware health, and even recreate the CVM if necessary.</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <h3>Prerequisites - Review Serial Logs First</h3>
+          <p>
+            <strong>Critical Step:</strong> Before using cvm_diagnose, always review the CVM's serial output logs to understand why it's unhealthy. This helps target your troubleshooting approach.</p>
+          <h4>Serial Log Locations by Hypervisor:</h4>
+          <ul>
+            <li>AHV<ul>
+                <li>/var/log/<strong>NTNX.serial.out.0</strong>
+                </li>
+                <li>/tmp/NTNX.serial.out.0</li>
+              </ul>
+            </li>
+            <li>ESXi:<ul>
+                <li>/vmfs/volumes/&lt;local_datastore&gt;/ServiceVM_Centos/<strong>ServiceVM_Centos.0.out</strong>
+                </li>
+              </ul>
+            </li>
+            <li>Hyper-V:<ul>
+                <li>NutanixAgent log in EventViewer</li>
+              </ul>
+            </li>
+          </ul>
+          <p>
+            <br/>
+          </p>
+          <ac:structured-macro ac:macro-id="349ed638-afe0-408a-84b8-0ff646482b1a" ac:name="tip" ac:schema-version="1">
+            <ac:parameter ac:name="title">Not sure how to read the logs?</ac:parameter>
+            <ac:rich-text-body>
+              <p>Check out this recent training if you're unsure how to navigate the serial output logs.</p>
+              <p>
+                <a href="https://docs.google.com/presentation/d/1Gx5ihsNz6-jJXDAPLkvZ3LI74y2TJ6xSh0D7H8F-Sj0/edit?usp=sharing">"Your Friend, the CVM Serial Output Log" Slide Deck</a> (April 2025)</p>
+              <p style="text-align: left;">
+                <a class="external-link" href="https://nutanix.zoom.us/rec/share/2mKAQymCclpRWLSN4lA3BDTe70mxGkvqv9WExR-99LBCVCx--pKqy1h7WMWLf1b6.6R7oKYIr9V7vo11d?startTime=1743697950000">Zoom Recording (63min)</a> - Passcode: WK#CR6#L</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <p>
+            <br/>
+          </p>
+          <p>2. Make sure the target CVM is placed into <em>Maintenance Mode</em> and <em>Powered Off</em>.</p>
+          <ul>
+            <li>AOS 6.x and later, use the <a href="https://portal.nutanix.com/page/documents/details?targetId=AHV-Admin-Guide:wc-node-maintenance-mode-enter-wc-t.html">Prism Method of Maintenance Mode</a>. If successful, this action should power down the CVM <em>automatically</em>.</li>
+            <li>Alternatively, you may use the <a href="https://nutanix.my.salesforce.com/kA00e000000LIQo">manual (NCLI) method putting the CVM in Maintenance Mode (KB-4639)</a>.</li>
+          </ul>
+          <p>
+            <br/>
+          </p>
+          <p>3. From a healthy CVM in the same cluster, run the cvm_diagnose script providing the IP address of the unhealthy one. There are <u>two options</u> for what type of svmrescue.iso you would like to use to</p>
+          <ac:structured-macro ac:macro-id="1a2eeeda-9155-4746-8760-6255be18a9bb" ac:name="note" ac:schema-version="1">
+            <ac:rich-text-body>
+              <p>Make sure you have the <em>correct IP address</em> of the <em>unhealthy CVM</em>.</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <p style="margin-left: 40.0px;">a. For <strong>basic debugging</strong>, the following command will boot the target CVM using a slim 250MB svmrescue.iso:</p>
+          <ac:structured-macro ac:macro-id="97001b80-b9a6-472d-a883-19a4d7018d15" ac:name="noformat" ac:schema-version="1">
+            <ac:plain-text-body><![CDATA[nutanix@HEALTHY-CVM:~$ cvm_diagnose -b -s <UNHEATHY-CVM-IP>
+
+OR
+
+nutanix@HEALTHY-CVM:~$ cvm_diagnose -bringup -svm_ip <UNHEATHY-CVM-IP>]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <p style="margin-left: 40.0px;">b. <ac:emoticon ac:name="minus"/> For potential <strong>Recreation of CVM</strong>, this command will boot the CVM with an svmrescue.iso containing a the full AOS binary. <span style="color: rgb(255,0,0);"> <a href="https://confluence.eng.nutanix.com:8443/display/STK/SVM+Rescue%3A+Re-Creating+a+CVM">Refer to the full instructions on performing recreate/rescue of CVM and please heed all warnings</a> </span> <span style="color: rgb(0,0,0);">.</span>
+          </p>
+          <ac:structured-macro ac:macro-id="b40b1d7e-5de5-429a-be66-6d98acaf1420" ac:name="warning" ac:schema-version="1">
+            <ac:rich-text-body>
+              <p>The <em>--full_nos_bundle</em> flag is currently not working in <strong>AHV</strong> versions <strong style="text-align: left;">20230302.100187</strong> and higher due to directory space limitations. Attempts to use it on these versions will result in a failure similar to the one shown below. This will be addressed in a future AOS release via <a href="https://jira.nutanix.com/browse/ENG-721638?focusedId=7248350&amp;page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel#comment-7248350">ENG-721638</a> and <a href="https://jira.nutanix.com/browse/ENG-636777">ENG-636777</a>.</p>
+              <p>
+                <br/>
+              </p>
+              <pre>2025-03-26 19:03:18,451Z ERROR cvm_diagnose:376 Memory available on satadom is less than required <br/>2025-03-26 19:03:18,452Z CRITICAL cvm_diagnose:720 sm_create_transfer_svmrescue_image() failed due to Memory available on satadom is less than required</pre>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <ac:structured-macro ac:macro-id="686b7702-813d-4649-a949-ca744eb7f410" ac:name="code" ac:schema-version="1">
+            <ac:plain-text-body><![CDATA[nutanix@HEALTHY-CVM:~$ cvm_diagnose -b --full_nos_bundle -s <UNHEATHY-CVM-IP>]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <ac:structured-macro ac:macro-id="6eb9ca11-f06a-4fe7-aee9-1e6b25c15e31" ac:name="expand" ac:schema-version="1">
+            <ac:parameter ac:name="title">Example output. Click here to expand...</ac:parameter>
+            <ac:rich-text-body>
+              <pre>nutanix@CVM:xx.yy.zz.136:~$ cvm_diagnose -b -s xx.yy.zz.139
+
+WARNING: This will boot CVM with svmrescue.iso on node xx.yy.zz.139.
+Do you really want to proceed?: [Yes/No] yes
+
+2023-05-20 02:47:42,735Z INFO zookeeper_session.py:124 Using multithreaded Zookeeper client library: 0
+2023-05-20 02:47:42,736Z INFO zookeeper_session.py:236 cvm_diagnose is attempting to connect to Zookeeper, host port list zk1:9876,zk2:9876,zk3:9876
+CVM diagnose node with IP: xx.yy.zz.139
+2023-05-20 02:47:42,738Z INFO zookeeper_session.py:742 ZK session establishment complete, sessionId=0x38830b492ec5633, negotiated timeout=20 secs
+2023-05-20 02:47:42,738Z INFO cvm_diagnose:107 Diagnosing cvm : xx.yy.zz.139
+2023-05-20 02:47:42,739Z INFO cvm_diagnose:126 Fetching SVM Info
+2023-05-20 02:47:42,740Z INFO cvm_diagnose:136 SVM ip : xx.yy.zz.139
+2023-05-20 02:47:42,740Z INFO cvm_diagnose:147 SVM id : 10
+2023-05-20 02:47:42,740Z INFO cvm_diagnose:162 Host ip : xx.yy.zz.139
+2023-05-20 02:47:42,740Z INFO cvm_diagnose:176 Hosttype : AHV
+2023-05-20 02:47:43,106Z INFO cvm_diagnose:223 CVM bootdisk SM: Entering Precheck state
+2023-05-20 02:47:45,459Z INFO lcm_genesis_utils.py:47 Rpc to [xx.yy.zz.136] for LCM [LcmFramework.is_lcm_operation_in_progress] is successful
+2023-05-20 02:47:45,460Z INFO cvm_diagnose:296 CVM bootdisk SM: Precheck state success
+2023-05-20 02:47:45,460Z INFO cvm_diagnose:306 CVM bootdisk SM: Entering create-transfer rescue state
+2023-05-20 02:47:45,460Z INFO cvm_diagnose:432 Starting svmrescue create
+2023-05-20 02:47:45,461Z INFO cvm_diagnose:410 Found installer directory at '/home/nutanix/data/installer/el7.3-release-fraser-6.6.2.5-stable-a2db3b6b534f1f1f199d46069ecd36991685297c'
+2023-05-20 02:47:45,462Z INFO cvm_diagnose:410 Found installer directory at '/home/nutanix/data/installer/el7.3-release-fraser-6.6.2.5-stable-a2db3b6b534f1f1f199d46069ecd36991685297c'
+2023-05-20 02:47:45,462Z INFO cvm_diagnose:509 Copying CVM leader's default ssh key to installer build
+2023-05-20 02:47:46,709Z INFO cvm_diagnose:539 CVM bootdisk SM: svmrescue create done
+2023-05-20 02:47:47,040Z INFO ssd_breakfix_kvm_helper.py:162 Powering off the current CVM
+2023-05-20 02:47:47,041Z ERROR ssd_breakfix_kvm_helper.py:170 SVM domain destroy failed
+2023-05-20 02:47:47,041Z INFO ssd_breakfix_kvm_helper.py:176 Ignoring exception Requested operation is not valid: domain is not running
+2023-05-20 02:47:47,041Z INFO ssd_breakfix_kvm_helper.py:186 Destroyed the current CVM
+2023-05-20 02:47:47,041Z INFO cvm_diagnose:380 Powered off CVM
+2023-05-20 02:47:47,041Z INFO cvm_diagnose:383 CVM bootdisk SM: starting rescue image transfer
+2023-05-20 02:47:47,041Z INFO cvm_diagnose:549 Copying the svmrescue image /home/nutanix/data/installer/svmrescue.iso to host xx.yy.zz.139 dir /var/lib/libvirt/NTNX-CVM/
+2023-05-20 02:47:48,601Z INFO cvm_diagnose:563 Successfully copied the svmrescue image to host xx.yy.zz.139
+2023-05-20 02:47:48,920Z INFO cvm_diagnose:572 chmod done successfully for svmrescue.iso
+2023-05-20 02:47:48,920Z INFO cvm_diagnose:388 CVM bootdisk SM: Rescue image transfer completed
+2023-05-20 02:47:48,921Z INFO cvm_diagnose:581 CVM bootdisk SM: Entering rescue CVM bringup state
+2023-05-20 02:47:48,921Z INFO cvm_diagnose:608 Connected to host
+2023-05-20 02:47:48,922Z INFO cvm_diagnose:616 Got CVM
+2023-05-20 02:47:48,922Z INFO cvm_diagnose:632 CVM imaging - image name svmrescue.iso
+2023-05-20 02:47:48,946Z INFO cvm_diagnose:640 CVM imaging - ISO updated
+2023-05-20 02:47:58,317Z INFO cvm_diagnose:649 Image attached and CVM xx.yy.zz.139 powered on
+2023-05-20 02:47:58,317Z INFO cvm_diagnose:585 Successfully initiated rescue CVM bringup
+CVM diagnose initiated successfully
+2023-05-20 02:47:58,318Z INFO cvm_diagnose:674 Waiting for SSH to CVM xx.yy.zz.139 start working
+2023-05-20 02:48:45,432Z INFO cvm_diagnose:679 CVM SSH xx.yy.zz.139 has come up
+
+ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -C root@xx.yy.zz.139 
+2023-05-20 02:48:50,438Z INFO zookeeper_session.py:302 close() was called for session 0x38830b492ec5633
+2023-05-20 02:48:50,439Z INFO zookeeper_session.py:311 Invalidated the Zookeeper C-client object for session 0x38830b492ec5633</pre>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <p>
+            <br/>
+          </p>
+          <p>
+            <span>3. Remove the old SSH key from the healthy CVM so that you can connect to the unhealthy one in the rescue shell.</span>
+          </p>
+          <ac:structured-macro ac:macro-id="4e4866c9-7fb6-446b-8c9d-730e36f38ec2" ac:name="noformat" ac:schema-version="1">
+            <ac:plain-text-body><![CDATA[nutanix@HEALTHY-CVM:~$ ssh-keygen -R <UNHEATHY-CVM-IP>]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <p class="auto-cursor-target">
+            <br/>
+          </p>
+          <ac:structured-macro ac:macro-id="3cdc5f4c-4d60-4a3a-aacf-5eaf6d374830" ac:name="code" ac:schema-version="1">
+            <ac:parameter ac:name="theme">Midnight</ac:parameter>
+            <ac:parameter ac:name="title">Example</ac:parameter>
+            <ac:plain-text-body><![CDATA[nutanix@CVM:xx.yy.zz.136:~$ ssh-keygen -R xx.yy.zz.139
+
+# Host xx.yy.zz.139 found: line 6
+/home/nutanix/.ssh/known_hosts updated.
+Original contents retained as /home/nutanix/.ssh/known_hosts.old]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <p>4. SSH to the unhealthy CVM. Login with user <strong>root</strong> and password <strong>nutanix/4u</strong>
+          </p>
+          <ac:structured-macro ac:macro-id="d773ccd2-46f7-4137-9553-3f81ce45e17b" ac:name="noformat" ac:schema-version="1">
+            <ac:plain-text-body><![CDATA[nutanix@HEALTHY-CVM:~$ ssh root@<UNHEATHY-CVM-IP>]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <p class="auto-cursor-target">
+            <br/>
+          </p>
+          <ac:structured-macro ac:macro-id="f194b3d2-3518-472a-baa7-cff5e118d109" ac:name="code" ac:schema-version="1">
+            <ac:parameter ac:name="theme">Midnight</ac:parameter>
+            <ac:parameter ac:name="title">Example</ac:parameter>
+            <ac:plain-text-body><![CDATA[nutanix@CVM:xx.yy.zz.136:~$ ssh root@xx.yy.zz.139
+FIPS mode initialized
+
+Warning: Permanently added 'xx.yy.zz.139' (RSA) to the list of known hosts.
+
+root@xx.yy.zz.139's password: 
+-bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8)
+rescue ~ # ]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <p class="auto-cursor-target">
+            <br/>
+          </p>
+          <ac:structured-macro ac:macro-id="1f41a730-6cf1-4606-947f-f47be02b9020" ac:name="info" ac:schema-version="1">
+            <ac:parameter ac:name="title">Need help with commands?</ac:parameter>
+            <ac:rich-text-body>
+              <p>You can find a list of commands and actions to use in the rescue shell in <ac:link>
+                  <ri:page ri:content-title="Debugging in Phoenix or Rescue Shells"/>
+                </ac:link> or later in this page.</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <ac:structured-macro ac:macro-id="6cd838eb-e29c-4ac4-9903-4b4551749984" ac:name="tip" ac:schema-version="1">
+            <ac:parameter ac:name="title">Tip</ac:parameter>
+            <ac:rich-text-body>
+              <p>
+                <span style="color: rgb(23,43,77);">You can also use any SSH terminal to perform the same task. Note that Nutanix provides free usage of<span> </span> </span> <span style="color: rgb(0,0,255);"> <a class="external-link" href="https://www.royalapps.com/ts/win/features">Royal TS V7</a> </span> <span style="color: rgb(23,43,77);">, which is an SSH terminal available from the Company Portal. Just type Company Portal into your laptop search bar to bring up the Company Portal App.</span>
+              </p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <h3 class="auto-cursor-target">Boot Back into AOS (-r)</h3>
+          <p>Here are the steps to boot the unhealthy CVM back into its regular AOS once you're finished troubleshooting.</p>
+          <p>
+            <br/>
+          </p>
+          <p>1. Power down the unhealthy CVM from the hypervisor.</p>
+          <ac:structured-macro ac:macro-id="8b433f49-4e5f-4a5c-afde-2baf41d2334c" ac:name="noformat" ac:schema-version="1">
+            <ac:plain-text-body><![CDATA[--FOR AHV--
+
+root@UNHEALTHY-HOST# virsh list --all
+-Find the name of the CVM
+
+root@UNHEALTHY-HOST# virsh destroy [name of unhealthy cvm]]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <p>2. From a healthy CVM in the same cluster, run the cvm_diagnose script providing the IP address of the unhealthy one.</p>
+          <ac:structured-macro ac:macro-id="9d92c81c-4254-4f45-939c-a4eb21742f1c" ac:name="noformat" ac:schema-version="1">
+            <ac:plain-text-body><![CDATA[nutanix@HEALTHY-CVM:~$ cvm_diagnose -r -s <UNHEATHY-CVM-IP>
+
+OR
+
+nutanix@HEALTHY-CVM:~$ cvm_diagnose -revert -svm_ip <UNHEATHY-CVM-IP>]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <ac:structured-macro ac:macro-id="c480882b-38ce-4794-bc0d-1c98d8463f8f" ac:name="expand" ac:schema-version="1">
+            <ac:parameter ac:name="title">Example output. Click here to expand...</ac:parameter>
+            <ac:rich-text-body>
+              <pre>nutanix@CVM:xx.yy.zz.136:~$ cvm_diagnose -r -s xx.yy.zz.139
+
+WARNING: This will boot CVM with svmboot.iso on node xx.yy.zz.139.
+Do you really want to proceed?: [Yes/No] yes
+
+2023-05-20 03:03:55,868Z INFO zookeeper_session.py:124 Using multithreaded Zookeeper client library: 0
+2023-05-20 03:03:55,869Z INFO zookeeper_session.py:236 cvm_diagnose is attempting to connect to Zookeeper, host port list zk1:9876,zk2:9876,zk3:9876
+Diagnosing CVM with IP: xx.yy.zz.139
+2023-05-20 03:03:55,872Z INFO zookeeper_session.py:742 ZK session establishment complete, sessionId=0x18830b492e1582b, negotiated timeout=20 secs
+2023-05-20 03:03:55,872Z INFO cvm_diagnose:107 Diagnosing cvm : xx.yy.zz.139
+2023-05-20 03:03:55,872Z INFO cvm_diagnose:126 Fetching SVM Info
+2023-05-20 03:03:55,874Z INFO cvm_diagnose:136 SVM ip : xx.yy.zz.139
+2023-05-20 03:03:55,874Z INFO cvm_diagnose:147 SVM id : 10
+2023-05-20 03:03:55,874Z INFO cvm_diagnose:162 Host ip : xx.yy.zz.139
+2023-05-20 03:03:55,874Z INFO cvm_diagnose:176 Hosttype : AHV
+2023-05-20 03:03:56,240Z INFO cvm_diagnose:223 CVM bootdisk SM: Entering Precheck state
+2023-05-20 03:04:06,265Z WARNING command.py:175 Timeout executing ping -c 1 xx.yy.zz.139: 10 secs elapsed
+2023-05-20 03:04:06,292Z INFO lcm_genesis_utils.py:47 Rpc to [xx.yy.zz.136] for LCM [LcmFramework.is_lcm_operation_in_progress] is successful
+2023-05-20 03:04:06,293Z INFO cvm_diagnose:296 CVM bootdisk SM: Precheck state success
+2023-05-20 03:04:06,293Z INFO cvm_diagnose:581 CVM bootdisk SM: Entering rescue CVM bringup state
+2023-05-20 03:04:06,293Z INFO cvm_diagnose:608 Connected to host
+2023-05-20 03:04:06,294Z INFO cvm_diagnose:616 Got CVM
+2023-05-20 03:04:06,294Z INFO cvm_diagnose:632 CVM imaging - image name svmboot.iso
+2023-05-20 03:04:06,306Z INFO cvm_diagnose:640 CVM imaging - ISO updated
+2023-05-20 03:04:15,728Z INFO cvm_diagnose:649 Image attached and CVM xx.yy.zz.139 powered on
+2023-05-20 03:04:15,729Z INFO cvm_diagnose:585 Successfully initiated rescue CVM bringup
+CVM diagnose initiated successfully
+2023-05-20 03:04:15,729Z INFO cvm_diagnose:674 Waiting for SSH to CVM xx.yy.zz.139 start working
+2023-05-20 03:05:05,008Z INFO cvm_diagnose:679 CVM SSH xx.yy.zz.139 has come up
+2023-05-20 03:05:10,014Z INFO zookeeper_session.py:302 close() was called for session 0x18830b492e1582b
+2023-05-20 03:05:10,014Z INFO zookeeper_session.py:311 Invalidated the Zookeeper C-client object for session 0x18830b492e1582b</pre>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <p class="auto-cursor-target">
+            <br/>
+          </p>
+          <p>
+            <span>3. Take the CVM back </span> <strong>out of Maintenance Mode</strong> <span> using the same method you used to put it into this state (Prism or NCLI).</span>
+          </p>
+          <p>
+            <br/>
+          </p>
+          <p>
+            <br/>
+          </p>
+          <h2 class="auto-cursor-target">Common Scenarios</h2>
+          <p>Below are some common scenarios that can cause a CVM to fail to boot up fully.</p>
+          <ol>
+            <li>
+              <a href="https://nutanix.my.salesforce.com/kA00e000000XfCq">CVM boot drive failure on Single-SSD model node (KB-5231)</a>
+            </li>
+            <li>
+              <a href="https://nutanix.my.salesforce.com/kA07V000000Le3r">G8: single_ssd_repair script fails stating "Rescue CVM did not come up" (KB-13522)</a>
+            </li>
+            <li>
+              <a href="https://nutanix.my.salesforce.com/kA07V000000LWOW">Misaligned CVM boot RAID "too many partitions with valid cvm_uuid" bootloop error (KB-11776)</a>
+            </li>
+            <li>
+              <a href="https://nutanix.my.salesforce.com/kA00e000000LSwk">AOS 5.19.x /5.15.5: CVM or Witness VM in a boot loop after a reboot or an upgrade (KB-10908)</a>
+            </li>
+            <li>
+              <a href="https://nutanix.my.salesforce.com/kA07V000000LeQi">ESXi hypervisor: CVM on all-NVMe node may go in a boot loop with unable to find valid boot partition (KB-13561)</a>
+            </li>
+            <li>
+              <a href="https://nutanix.my.salesforce.com/kA032000000PODl">ESXi hypervisor: HBA passthrough is not configured correctly (KB-4399)</a>
+            </li>
+            <li>
+              <a href="https://nutanix.my.salesforce.com/kA032000000TW7N">Missing or corrupt svmboot.iso (KB-4220)</a>
+            </li>
+          </ol>
+          <p>You can find <strong>additional commands</strong> for hardware troubleshooting here:</p>
+          <ul>
+            <li>
+              <a href="https://nutanix.lightning.force.com/lightning/r/Knowledge_Base__kav/ka0VO000000C07VYAS/view">Hardware Troubleshooting from Phoenix (KB-18078)</a>
+            </li>
+          </ul>
+          <p>
+            <br/>
+          </p>
+        </ac:rich-text-body>
+      </ac:structured-macro>
+      <h2>Advanced Troubleshooting Workflows</h2>
+      <p>These comprehensive workflows guide you through systematic hardware diagnostics, from basic drive detection to advanced HBA troubleshooting and RAID recovery procedures.</p>
+      <ac:structured-macro ac:macro-id="b3b3c6cf-1502-42cd-9a59-7ec919c7d771" ac:name="expand" ac:schema-version="1">
+        <ac:parameter ac:name="title">Complete Hardware Diagnostic Workflows</ac:parameter>
+        <ac:rich-text-body>
+          <ac:structured-macro ac:macro-id="becc3949-bf11-48c2-818d-c55536ae9b88" ac:name="info" ac:schema-version="1">
+            <ac:parameter ac:name="title">Systematic Approach</ac:parameter>
+            <ac:rich-text-body>
+              <p>Follow these workflows in order: start with basic drive detection, then proceed to health checks, and finally investigate specific hardware issues. Each step builds on the previous ones.</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <h3>Hardware Detection &amp; Health Assessment</h3>
+          <h4>Step 1: Verify Physical Drive Detection</h4>
+          <p>Before diagnosing issues, confirm that all drives are physically detected by the system.</p>
+          <h5>For Traditional SATA/SAS Drives:</h5>
+          <p>
+            <strong>SSD/HDD</strong>
+          </p>
+          <ac:structured-macro ac:macro-id="71712c04-7506-4397-864d-b375b765261a" ac:name="code" ac:schema-version="1">
+            <ac:parameter ac:name="language">bash</ac:parameter>
+            <ac:parameter ac:name="theme">Emacs</ac:parameter>
+            <ac:plain-text-body><![CDATA[rescue ~ # lsscsi
+[1:0:0:0]    cd/dvd  QEMU     QEMU DVD-ROM     2.5+  /dev/sr0
+[2:0:0:0]    disk    ATA      ST2000NM0055-1V4 TN05  /dev/sda
+[2:0:1:0]    disk    ATA      ST2000NM0055-1V4 TN05  /dev/sdb
+[2:0:2:0]    disk    ATA      SAMSUNG MZ7KM960 304Q  /dev/sdc]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <p>
+            <strong>NVMe</strong>
+          </p>
+          <ac:structured-macro ac:macro-id="becfcb02-2532-43ee-9adc-c0793784509a" ac:name="code" ac:schema-version="1">
+            <ac:parameter ac:name="language">bash</ac:parameter>
+            <ac:parameter ac:name="theme">Emacs</ac:parameter>
+            <ac:plain-text-body><![CDATA[rescue ~ # nvme list
+Node                  SN                   Model                                    Namespace Usage                      Format           FW Rev
+--------------------- -------------------- ---------------------------------------- --------- -------------------------- ---------------- --------
+/dev/nvme0n1          S438NA0NC07811       SAMSUNG MZQLB3T8HALS-00007               1           3.61  TB /   3.84  TB    512   B +  0 B   EDA5702Q
+/dev/nvme1n1          S438NA0NC07818       SAMSUNG MZQLB3T8HALS-00007               1           3.64  TB /   3.84  TB    512   B +  0 B   EDA5702Q
+/dev/nvme2n1          S438NA0NC09358       SAMSUNG MZQLB3T8HALS-00007               1         100.54  GB /   3.84  TB    512   B +  0 B   EDA5402Q
+/dev/nvme3n1          S438NA0NC07813       SAMSUNG MZQLB3T8HALS-00007               1           1.71  TB /   3.84  TB    512   B +  0 B   EDA5702Q]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <h4>2. Check device-level health of the disk</h4>
+          <p>Run smartctl against <strong>SSD &amp; HDD</strong> drives</p>
+          <ac:structured-macro ac:macro-id="7f990923-2925-4d17-ad21-82aa03f97794" ac:name="code" ac:schema-version="1">
+            <ac:parameter ac:name="language">bash</ac:parameter>
+            <ac:parameter ac:name="theme">Emacs</ac:parameter>
+            <ac:plain-text-body><![CDATA[rescue ~ # /usr/sbin/smartctl -x /dev/sdX -T permissive]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <ac:structured-macro ac:macro-id="d52decee-f7dd-42cd-aa02-b3f89e16c24d" ac:name="expand" ac:schema-version="1">
+            <ac:parameter ac:name="title">Example output. Click here to expand...</ac:parameter>
+            <ac:rich-text-body>
+              <p>rescue ~ # /usr/sbin/smartctl -x /dev/sdd -T permissive<br/>smartctl 6.4 2015-06-04 r4109 [x86_64-linux-5.10.2] (local build)<br/>Copyright (C) 2002-15, Bruce Allen, Christian Franke, <a href="http://www.smartmontools.org">www.smartmontools.org</a>
+              </p>
+              <p>=== START OF INFORMATION SECTION ===<br/>Device Model: SAMSUNG MZ7LM1T9HMJP-00005<br/>Serial Number: S2TVNX0K414127<br/>LU WWN Device Id: 5 002538 c40a3fbae<br/>Firmware Version: GXT5404Q<br/>User Capacity: 1,920,383,410,176 bytes [1.92 TB]<br/>Sector Size: 512 bytes logical/physical<br/>Rotation Rate: Solid State Device<br/>Form Factor: 2.5 inches<br/>Device is: Not in smartctl database [for details use: -P showall]<br/>ATA Version is: ACS-2, ATA8-ACS T13/1699-D revision 4c<br/>SATA Version is: SATA 3.1, 6.0 Gb/s (current: 6.0 Gb/s)<br/>Local Time is: Mon Apr 28 19:57:34 2025 UTC<br/>SMART support is: Available - device has SMART capability.<br/>SMART support is: Enabled<br/>AAM feature is: Unavailable<br/>APM feature is: Disabled<br/>Rd look-ahead is: Enabled<br/>Write cache is: Disabled<br/>ATA Security is: Disabled, NOT FROZEN [SEC1]<br/>Wt Cache Reorder: Enabled</p>
+              <p>=== START OF READ SMART DATA SECTION ===<br/>SMART overall-health self-assessment test result: PASSED</p>
+              <p>General SMART Values:<br/>Offline data collection status: (0x02) Offline data collection activity<br/>was completed without error.<br/>Auto Offline Data Collection: Disabled.<br/>Self-test execution status: ( 0) The previous self-test routine completed<br/>without error or no self-test has ever<br/>been run.<br/>Total time to complete Offline<br/>data collection: ( 6000) seconds.<br/>Offline data collection<br/>capabilities: (0x53) SMART execute Offline immediate.<br/>Auto Offline data collection on/off support.<br/>Suspend Offline collection upon new<br/>command.<br/>No Offline surface scan supported.<br/>Self-test supported.<br/>No Conveyance Self-test supported.<br/>Selective Self-test supported.<br/>SMART capabilities: (0x0003) Saves SMART data before entering<br/>power-saving mode.<br/>Supports SMART auto save timer.<br/>Error logging capability: (0x01) Error logging supported.<br/>General Purpose Logging supported.<br/>Short self-test routine<br/>recommended polling time: ( 2) minutes.<br/>Extended self-test routine<br/>recommended polling time: ( 100) minutes.<br/>SCT capabilities: (0x003d) SCT Status supported.<br/>SCT Error Recovery Control supported.<br/>SCT Feature Control supported.<br/>SCT Data Table supported.</p>
+              <p>SMART Attributes Data Structure revision number: 1<br/>Vendor Specific SMART Attributes with Thresholds:<br/>ID# ATTRIBUTE_NAME FLAGS VALUE WORST THRESH FAIL RAW_VALUE<br/>5 Reallocated_Sector_Ct PO--CK 100 100 010 - 0<br/>9 Power_On_Hours -O--CK 088 088 000 - 57294<br/>12 Power_Cycle_Count -O--CK 098 098 000 - 1541<br/>177 Wear_Leveling_Count PO--C- 097 097 005 - 223<br/>179 Used_Rsvd_Blk_Cnt_Tot PO--C- 100 100 010 - 0<br/>180 Unused_Rsvd_Blk_Cnt_Tot PO--C- 100 100 010 - 6476<br/>181 Program_Fail_Cnt_Total -O--CK 100 100 010 - 0<br/>182 Erase_Fail_Count_Total -O--CK 100 100 010 - 0<br/>183 Runtime_Bad_Block PO--C- 100 100 010 - 0<br/>184 End-to-End_Error PO--CK 100 100 097 - 0<br/>187 Reported_Uncorrect -O--CK 100 100 000 - 0<br/>190 Airflow_Temperature_Cel -O--CK 073 038 000 - 27<br/>194 Temperature_Celsius -O---K 073 038 000 - 27 (Min/Max 20/62)<br/>195 Hardware_ECC_Recovered -O-RC- 200 200 000 - 0<br/>197 Current_Pending_Sector -O--CK 100 100 000 - 0<br/>199 UDMA_CRC_Error_Count -OSRCK 100 100 000 - 0<br/>202 Unknown_SSD_Attribute PO--CK 100 100 010 - 0<br/>235 Unknown_Attribute -O--C- 099 099 000 - 1513<br/>241 Total_LBAs_Written -O--CK 099 099 000 - 750073927637<br/>242 Total_LBAs_Read -O--CK 099 099 000 - 1354357128044<br/>243 Unknown_Attribute -O--CK 100 100 000 - 0<br/>244 Unknown_Attribute -O--CK 100 100 000 - 0<br/>245 Unknown_Attribute -O--CK 100 100 000 - 3024<br/>246 Unknown_Attribute -O--CK 100 100 000 - 64<br/>247 Unknown_Attribute -O--CK 100 100 000 - 3427225<br/>251 Unknown_Attribute -O--CK 100 100 000 - 950183564288<br/>||||||_ K auto-keep<br/>|||||__ C event count<br/>||||___ R error rate<br/>|||____ S speed/performance<br/>||_____ O updated online<br/>|______ P prefailure warning</p>
+              <p>General Purpose Log Directory Version 1<br/>SMART Log Directory Version 1 [multi-sector log support]<br/>Address Access R/W Size Description<br/>0x00 GPL,SL R/O 1 Log Directory<br/>0x01 SL R/O 1 Summary SMART error log<br/>0x02 SL R/O 1 Comprehensive SMART error log<br/>0x03 GPL R/O 1 Ext. Comprehensive SMART error log<br/>0x04 GPL,SL R/O 8 Device Statistics log<br/>0x06 SL R/O 1 SMART self-test log<br/>0x07 GPL R/O 1 Extended self-test log<br/>0x08 GPL R/O 2 Power Conditions log<br/>0x09 SL R/W 1 Selective self-test log<br/>0x10 GPL R/O 1 SATA NCQ Queued Error log<br/>0x11 GPL R/O 1 SATA Phy Event Counters log<br/>0x13 GPL R/O 1 SATA NCQ Send and Receive log<br/>0x30 GPL,SL R/O 9 IDENTIFY DEVICE data log<br/>0x80-0x9f GPL,SL R/W 16 Host vendor specific log<br/>0xa0 GPL VS 16 Device vendor specific log<br/>0xce SL VS 16 Device vendor specific log<br/>0xe0 GPL,SL R/W 1 SCT Command/Status<br/>0xe1 GPL,SL R/W 1 SCT Data Transfer</p>
+              <p>SMART Extended Comprehensive Error Log Version: 1 (1 sectors)<br/>No Errors Logged</p>
+              <p>SMART Extended Self-test Log Version: 1 (1 sectors)<br/>Num Test_Description Status Remaining LifeTime(hours) LBA_of_first_error<br/># Extended offline Completed without error 00% 56884 -</p>
+              <p>SMART Selective self-test log data structure revision number 1<br/>SPAN MIN_LBA MAX_LBA CURRENT_TEST_STATUS<br/>1 0 0 Not_testing<br/>2 0 0 Not_testing<br/>3 0 0 Not_testing<br/>4 0 0 Not_testing<br/>5 0 0 Not_testing<br/>255 0 65535 Read_scanning was completed without error<br/>Selective self-test flags (0x0):<br/>After scanning selected spans, do NOT read-scan remainder of disk.<br/>If Selective self-test is pending on power-up, resume after 0 minute delay.</p>
+              <p>SCT Status Version: 3<br/>SCT Version (vendor specific): 256 (0x0100)<br/>SCT Support Level: 1<br/>Device State: SCT command executing in background (5)<br/>Current Temperature: 27 Celsius<br/>Power Cycle Min/Max Temperature: 26/28 Celsius<br/>Lifetime Min/Max Temperature: 20/62 Celsius<br/>Under/Over Temperature Limit Count: 0/0</p>
+              <p>SCT Temperature History Version: 2<br/>Temperature Sampling Period: 1 minute<br/>Temperature Logging Interval: 10 minutes<br/>Min/Max recommended Temperature: 0/70 Celsius<br/>Min/Max Temperature Limit: 0/70 Celsius<br/>Temperature History Size (Index): 128 (16)</p>
+              <p>Index Estimated Time Temperature Celsius<br/>17 2025-04-27 22:40 24 *****<br/>18 2025-04-27 22:50 25 ******<br/>19 2025-04-27 23:00 24 *****<br/>... ..( 5 skipped). .. *****<br/>25 2025-04-28 00:00 24 *****<br/>26 2025-04-28 00:10 23 ****<br/>27 2025-04-28 00:20 24 *****<br/>... ..( 2 skipped). .. *****<br/>30 2025-04-28 00:50 24 *****<br/>31 2025-04-28 01:00 25 ******<br/>32 2025-04-28 01:10 24 *****<br/>33 2025-04-28 01:20 24 *****<br/>34 2025-04-28 01:30 23 ****<br/>35 2025-04-28 01:40 23 ****<br/>36 2025-04-28 01:50 23 ****<br/>37 2025-04-28 02:00 24 *****<br/>38 2025-04-28 02:10 24 *****<br/>39 2025-04-28 02:20 25 ******<br/>40 2025-04-28 02:30 24 *****<br/>41 2025-04-28 02:40 24 *****<br/>42 2025-04-28 02:50 24 *****<br/>43 2025-04-28 03:00 23 ****<br/>44 2025-04-28 03:10 23 ****<br/>45 2025-04-28 03:20 23 ****<br/>46 2025-04-28 03:30 24 *****<br/>47 2025-04-28 03:40 24 *****<br/>48 2025-04-28 03:50 25 ******<br/>49 2025-04-28 04:00 24 *****<br/>50 2025-04-28 04:10 24 *****<br/>51 2025-04-28 04:20 24 *****<br/>52 2025-04-28 04:30 26 *******<br/>... ..( 3 skipped). .. *******<br/>56 2025-04-28 05:10 26 *******<br/>57 2025-04-28 05:20 27 ********<br/>58 2025-04-28 05:30 28 *********<br/>59 2025-04-28 05:40 27 ********<br/>60 2025-04-28 05:50 26 *******<br/>61 2025-04-28 06:00 27 ********<br/>62 2025-04-28 06:10 28 *********<br/>63 2025-04-28 06:20 27 ********<br/>... ..( 7 skipped). .. ********<br/>71 2025-04-28 07:40 27 ********<br/>72 2025-04-28 07:50 28 *********<br/>73 2025-04-28 08:00 27 ********<br/>74 2025-04-28 08:10 27 ********<br/>75 2025-04-28 08:20 27 ********<br/>76 2025-04-28 08:30 28 *********<br/>77 2025-04-28 08:40 27 ********<br/>78 2025-04-28 08:50 27 ********<br/>79 2025-04-28 09:00 28 *********<br/>80 2025-04-28 09:10 28 *********<br/>81 2025-04-28 09:20 27 ********<br/>82 2025-04-28 09:30 27 ********<br/>83 2025-04-28 09:40 28 *********<br/>84 2025-04-28 09:50 27 ********<br/>85 2025-04-28 10:00 27 ********<br/>86 2025-04-28 10:10 27 ********<br/>87 2025-04-28 10:20 28 *********<br/>88 2025-04-28 10:30 28 *********<br/>89 2025-04-28 10:40 27 ********<br/>90 2025-04-28 10:50 27 ********<br/>91 2025-04-28 11:00 28 *********<br/>92 2025-04-28 11:10 27 ********<br/>93 2025-04-28 11:20 27 ********<br/>94 2025-04-28 11:30 27 ********<br/>95 2025-04-28 11:40 28 *********<br/>96 2025-04-28 11:50 27 ********<br/>97 2025-04-28 12:00 27 ********<br/>98 2025-04-28 12:10 28 *********<br/>99 2025-04-28 12:20 27 ********<br/>100 2025-04-28 12:30 27 ********<br/>101 2025-04-28 12:40 27 ********<br/>102 2025-04-28 12:50 28 *********<br/>103 2025-04-28 13:00 27 ********<br/>104 2025-04-28 13:10 26 *******<br/>105 2025-04-28 13:20 27 ********<br/>... ..( 4 skipped). .. ********<br/>110 2025-04-28 14:10 27 ********<br/>111 2025-04-28 14:20 26 *******<br/>112 2025-04-28 14:30 27 ********<br/>113 2025-04-28 14:40 28 *********<br/>114 2025-04-28 14:50 27 ********<br/>115 2025-04-28 15:00 ? -<br/>116 2025-04-28 15:10 32 **************<br/>117 2025-04-28 15:20 27 ********<br/>118 2025-04-28 15:30 ? -<br/>119 2025-04-28 15:40 27 ********<br/>120 2025-04-28 15:50 28 *********<br/>121 2025-04-28 16:00 27 ********<br/>... ..( 3 skipped). .. ********<br/>125 2025-04-28 16:40 27 ********<br/>126 2025-04-28 16:50 26 *******<br/>127 2025-04-28 17:00 27 ********<br/>0 2025-04-28 17:10 27 ********<br/>1 2025-04-28 17:20 27 ********<br/>2 2025-04-28 17:30 26 *******<br/>3 2025-04-28 17:40 27 ********<br/>4 2025-04-28 17:50 ? -<br/>5 2025-04-28 18:00 27 ********<br/>6 2025-04-28 18:10 26 *******<br/>7 2025-04-28 18:20 26 *******<br/>8 2025-04-28 18:30 27 ********<br/>9 2025-04-28 18:40 27 ********<br/>10 2025-04-28 18:50 27 ********<br/>11 2025-04-28 19:00 26 *******<br/>12 2025-04-28 19:10 27 ********<br/>13 2025-04-28 19:20 27 ********<br/>14 2025-04-28 19:30 27 ********<br/>15 2025-04-28 19:40 26 *******<br/>16 2025-04-28 19:50 26 *******</p>
+              <p>SCT Error Recovery Control:<br/>Read: Disabled<br/>Write: Disabled</p>
+              <p>Device Statistics (GP Log 0x04)<br/>Page Offset Size Value Flags Description<br/>0x01 ===== = === === == General Statistics (rev 1) ==<br/>0x01 0x008 4 1541 --- Lifetime Power-On Resets<br/>0x01 0x010 4 57294 --- Power-on Hours<br/>0x01 0x018 6 750073927637 --- Logical Sectors Written<br/>0x01 0x020 6 31325002139 --- Number of Write Commands<br/>0x01 0x028 6 1354357128044 --- Logical Sectors Read<br/>0x01 0x030 6 8014027647 --- Number of Read Commands<br/>0x01 0x038 6 2999000 --- Date and Time TimeStamp<br/>0x04 ===== = === === == General Errors Statistics (rev 1) ==<br/>0x04 0x008 4 0 --- Number of Reported Uncorrectable Errors<br/>0x04 0x010 4 226 --- Resets Between Cmd Acceptance and Completion<br/>0x05 ===== = === === == Temperature Statistics (rev 1) ==<br/>0x05 0x008 1 27 --- Current Temperature<br/>0x05 0x020 1 62 --- Highest Temperature<br/>0x05 0x028 1 20 --- Lowest Temperature<br/>0x05 0x058 1 70 --- Specified Maximum Operating Temperature<br/>0x06 ===== = === === == Transport Statistics (rev 1) ==<br/>0x06 0x008 4 37568 --- Number of Hardware Resets<br/>0x06 0x010 4 0 --- Number of ASR Events<br/>0x06 0x018 4 0 --- Number of Interface CRC Errors<br/>0x07 ===== = === === == Solid State Device Statistics (rev 1) ==<br/>0x07 0x008 1 3 N-- Percentage Used Endurance Indicator<br/>||| C monitored condition met<br/>||D supports DSN<br/>|__ N normalized value</p>
+              <p>SATA Phy Event Counters (GP Log 0x11)<br/>ID Size Value Description<br/>0x0001 2 0 Command failed due to ICRC error<br/>0x0002 2 0 R_ERR response for data FIS<br/>0x0003 2 0 R_ERR response for device-to-host data FIS<br/>0x0004 2 0 R_ERR response for host-to-device data FIS<br/>0x0005 2 0 R_ERR response for non-data FIS<br/>0x0006 2 0 R_ERR response for device-to-host non-data FIS<br/>0x0007 2 0 R_ERR response for host-to-device non-data FIS<br/>0x0008 2 0 Device-to-host non-data FIS retries<br/>0x0009 2 3 Transition from drive PhyRdy to drive PhyNRdy<br/>0x000a 2 3 Device-to-host register FISes sent due to a COMRESET<br/>0x000b 2 0 CRC errors within host-to-device FIS<br/>0x000d 2 0 Non-CRC errors within host-to-device FIS<br/>0x000f 2 0 R_ERR response for host-to-device data FIS, CRC<br/>0x0010 2 0 R_ERR response for host-to-device data FIS, non-CRC<br/>0x0012 2 0 R_ERR response for host-to-device non-data FIS, CRC<br/>0x0013 2 0 R_ERR response for host-to-device non-data FIS, non-CRC</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <p>Run smart-log against <strong>NVMe</strong> drives (smartctl will not work in most cases).</p>
+          <ac:structured-macro ac:macro-id="724bdb3e-5429-42c1-ae9e-f87b7e8228da" ac:name="code" ac:schema-version="1">
+            <ac:parameter ac:name="language">bash</ac:parameter>
+            <ac:parameter ac:name="theme">Emacs</ac:parameter>
+            <ac:plain-text-body><![CDATA[rescue ~ # nvme smart-log /dev/nvme0n1
+Smart Log for NVME device:nvme4n1 namespace-id:ffffffff
+critical_warning                        : 0             <=== Replace the drive if greater than 1.
+temperature                             : 31 C
+available_spare                         : 100%          <=== Replace if less than available_spare_threshold.
+available_spare_threshold               : 10%
+percentage_used                         : 0%            <=== Replace the drive if greater than 90%.
+endurance group critical warning summary: 0
+data_units_read                         : 1,653,227,241
+data_units_written                      : 402,647,442
+host_read_commands                      : 11,780,482,820
+host_write_commands                     : 13,386,979,160
+controller_busy_time                    : 15,765
+power_cycles                            : 75
+power_on_hours                          : 10,078
+unsafe_shutdowns                        : 41
+media_errors                            : 59            <=== Replace if the media error is greater than 0.
+num_err_log_entries                     : 59
+Warning Temperature Time                : 0
+Critical Composite Temperature Time     : 0
+Temperature Sensor 1           : 31 C
+Temperature Sensor 2           : 39 C
+Thermal Management T1 Trans Count       : 0
+Thermal Management T2 Trans Count       : 0
+Thermal Management T1 Total Time        : 0
+Thermal Management T2 Total Time        : 0]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <ac:structured-macro ac:macro-id="835eb92a-0f35-42ea-a34a-ffbf61f2f0a2" ac:name="expand" ac:schema-version="1">
+            <ac:parameter ac:name="title">Example of a disk containing critical_warnings. Click here to expand...</ac:parameter>
+            <ac:rich-text-body>
+              <pre>rescue ~ # nvme smart-log /dev/nvme3n1<br/>Smart Log for NVME device:nvme3n1 namespace-id:ffffffff<br/>critical_warning                        : 0x10  &lt;===<br/>temperature                             : 32 C<br/>available_spare                         : 100%<br/>available_spare_threshold               : 10%<br/>percentage_used                         : 1%<br/>endurance group critical warning summary: 0<br/>data_units_read                           : 183199009<br/>data_units_written                      : 27352861<br/>host_read_commands                      : 4446699163<br/>host_write_commands                     : 1851978827<br/>controller_busy_time                    : 53209<br/>power_cycles                            : 204<br/>power_on_hours                          : 10847<br/>unsafe_shutdowns                        : 196<br/>media_errors                            : 0<br/>num_err_log_entries                     : 0<br/>Warning Temperature Time                : 0<br/>Critical Composite Temperature Time     : 0<br/>Temperature Sensor 1                   : 32 C<br/>Temperature Sensor 2                   : 36 C<br/>Temperature Sensor 3                   : 41 C<br/>Thermal Management T1 Trans Count     : 0<br/>Thermal Management T2 Trans Count     : 0<br/>Thermal Management T1 Total Time       : 0<br/>Thermal Management T2 Total Time       : 0</pre>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <p>For <strong>NVMe</strong> drives, it's also possible to save a history of past errors and events for a particular drive using the "nvme error-log" command.</p>
+          <p>Here are the steps for saving this to a file and then copying it over to a working CVM.</p>
+          <ac:structured-macro ac:macro-id="2a7c9a50-b2e0-4794-bd81-1ee529ec2f61" ac:name="code" ac:schema-version="1">
+            <ac:parameter ac:name="language">bash</ac:parameter>
+            <ac:parameter ac:name="theme">Emacs</ac:parameter>
+            <ac:parameter ac:name="title">Saving nvme error-log to a file and copying it to a healthy CVM</ac:parameter>
+            <ac:plain-text-body><![CDATA[rescue ~ # nvme error-log /dev/nvme3n1 > /tmp/error_log_S439NC0T102690.txt
+rescue ~ # exit
+
+nutanix@HEALTHY-CVM:~$ scp root@UNHEALTH-CVM-IP:/tmp/error_log_S439NC0T102690.txt ~/tmp/
+root@xx.yy.zz.141's password:
+bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8)
+error_log_S439NC0T102690.txt
+100%   20KB  24.4MB/s   00:00
+
+nutanix@HEALTHY-CVM:~$ ls -l ~/tmp/error_log_S439NC0T102690.txt
+-rw-------. 1 nutanix nutanix 20546 Apr 28 19:09 /home/nutanix/tmp/error_log_S439NC0T102690.txt]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <h4>3. Check HBA health</h4>
+          <p>For systems using <strong>SSD/HDDs</strong>, lsiutil can help you check the health of the disk interfaces.</p>
+          <p>Make sure of the following:</p>
+          <ul>
+            <li>Are all the expected HBA cards present (appear as "iocX" in lsiutil)?</li>
+            <li>Are all the expected disk links active and running at full speed (e.g. 6.0 Gbps)?</li>
+            <li>Are there any errors on the disk links. If there are errors, how quickly are these climbing?</li>
+          </ul>
+          <p>
+            <br/>
+          </p>
+          <ac:structured-macro ac:macro-id="5687b48c-7351-4f93-9f43-3ff70d06d1d9" ac:name="code" ac:schema-version="1">
+            <ac:parameter ac:name="language">bash</ac:parameter>
+            <ac:parameter ac:name="theme">Emacs</ac:parameter>
+            <ac:parameter ac:name="title">Check if disk links are up and whether they are running at the expected speeds</ac:parameter>
+            <ac:plain-text-body><![CDATA[rescue ~ # /mnt/cdrom/lib/lsi-sas/lsiutil -p 1 -i]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <ac:structured-macro ac:macro-id="bc3d8ad7-ca03-45f7-8c71-747115bb30c9" ac:name="expand" ac:schema-version="1">
+            <ac:parameter ac:name="title">Example output. Click here to expand...</ac:parameter>
+            <ac:rich-text-body>
+              <pre>rescue ~ # /mnt/cdrom/lib/lsi-sas/lsiutil -p 1 -i<br/>LSI Logic MPT Configuration Utility, Version 1.70, July 30, 2013<br/>modprobe: FATAL: Module mptctl not found in directory /lib/modules/5.10.2<br/>1 MPT Port found<br/>==============================================================================<br/>ioc0              LSI Logic SAS3008 C0     MPT 205   Firmware 10000a00   IOC 0<br/>Seg/Bus/Dev/Fun    Board Name       Board Assembly   Board Tracer<br/> 0   0   6   0     LSI3008-IT<br/>Current Port State<br/>------------------<br/>SAS3008's links are 6.0 G, 6.0 G, 6.0 G, down, down, down, down, down<br/>Software Version Information<br/>----------------------------<br/>Current active firmware version is 10000a00 (16.00.10)<br/>Firmware image's version is MPTFW-16.00.10.00-IT<br/>  LSI Logic<br/>  Not Packaged Yet<br/>x86 BIOS image's version is MPT3BIOS-8.37.00.00 (2018.04.04)<br/>EFI BIOS image's version is 18.00.00.00<br/>Firmware Settings<br/>-----------------<br/>SAS WWID:                       5003048020860917<br/>Multi-pathing:                  Disabled<br/>SATA Native Command Queuing:    Enabled<br/>SATA Write Caching:             Disabled<br/>SATA Maximum Queue Depth:       128<br/>SAS Max Queue Depth, Narrow:    256<br/>SAS Max Queue Depth, Wide:      256<br/>Device Missing Report Delay:    0 seconds<br/>Device Missing I/O Delay:       0 seconds<br/>Phy Parameters for Phynum:      0    1    2    3    4    5    6    7<br/>  Link Enabled:                 Yes  Yes  Yes  Yes  Yes  Yes  Yes  Yes<br/>  Link Min Rate:                3.0  3.0  3.0  3.0  3.0  3.0  3.0  3.0<br/>  Link Max Rate:                12.0 12.0 12.0 12.0 12.0 12.0 12.0 12.0<br/>  SSP Initiator Enabled:        Yes  Yes  Yes  Yes  Yes  Yes  Yes  Yes<br/>  SSP Target Enabled:           No   No   No   No   No   No   No   No<br/>  Port Configuration:           Auto Auto Auto Auto Auto Auto Auto Auto<br/>Interrupt Coalescing:           Enabled, timeout is 10 us, depth is 4</pre>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <ac:structured-macro ac:macro-id="fbae5244-caa7-4c1c-a6a6-09621b7a3852" ac:name="code" ac:schema-version="1">
+            <ac:parameter ac:name="language">bash</ac:parameter>
+            <ac:parameter ac:name="theme">Emacs</ac:parameter>
+            <ac:parameter ac:name="title">Check which phys (slots) have active links to disks and whether there are any errors present</ac:parameter>
+            <ac:plain-text-body><![CDATA[rescue ~ # /mnt/cdrom/lib/lsi-sas/lsiutil -p 1 -a 12,0,0,0 20]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <ac:structured-macro ac:macro-id="d15ec05f-89ad-4819-9ba8-5ae80512726d" ac:name="expand" ac:schema-version="1">
+            <ac:parameter ac:name="title">Example of multiple disk slots containing errors. Click here to expand...</ac:parameter>
+            <ac:rich-text-body>
+              <pre>LSI Logic MPT Configuration Utility, Version 1.70, July 30, 2013<br/>  <br/>1 MPT Port found<br/>    Port Name         Chip Vendor/Type/Rev   MPT Rev  Firmware Rev  IOC<br/>1.  ioc0             LSI Logic 00e6 00        206      19000000     0<br/>  <br/>Diagnostics menu, select an option:  [1-99 or e/p/w or 0 to quit] 12<br/>Adapter Phy 0:  Link Up, No Errors<br/>Adapter Phy 1:  Link Up, No Errors<br/>Adapter Phy 2:  Link Up<br/>  Invalid DWord Count                    40<br/>  Running Disparity Error Count        30<br/>  Loss of DWord Synch Count              5<br/>  Phy Reset Problem Count              0<br/>Adapter Phy 3:  Link Up<br/>  Invalid DWord Count                    15<br/>  Running Disparity Error Count        10<br/>  Loss of DWord Synch Count              2<br/>  Phy Reset Problem Count              0<br/>Adapter Phy 4:  Link Up<br/>  Invalid DWord Count                    10<br/>  Running Disparity Error Count        10<br/>  Loss of DWord Synch Count              2<br/>  Phy Reset Problem Count              0<br/>Adapter Phy 5:  Link Up<br/>  Invalid DWord Count                    20<br/>  Running Disparity Error Count        11<br/>  Loss of DWord Synch Count              3<br/>  Phy Reset Problem Count              0<br/>Adapter Phy 6:  Link Down, No Errors<br/>Adapter Phy 7:  Link Down, No Errors<br/>Adapter Phy 8:  Link Up, No Errors<br/>Adapter Phy 9:  Link Down, No Errors<br/>Adapter Phy 10:  Link Down, No Errors</pre>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <ac:structured-macro ac:macro-id="1267ba54-3df6-4343-82b5-2449e0093822" ac:name="expand" ac:schema-version="1">
+            <ac:parameter ac:name="title">Clear the phy counters and then monitor to see whether the errors are incrementing. Click here to expand...</ac:parameter>
+            <ac:rich-text-body>
+              <pre>rescue ~ # /mnt/cdrom/lib/lsi-sas/lsiutil -p 1 -a 13,0,0 20<br/>LSI Logic MPT Configuration Utility, Version 1.70, July 30, 2013<br/>modprobe: FATAL: Module mptctl not found in directory /lib/modules/5.10.2<br/>/bin/mknod: /dev/mptctl: File exists<br/>1 MPT Port found<br/>    Port Name         Chip Vendor/Type/Rev   MPT Rev  Firmware Rev  IOC<br/>1. ioc0             LSI Logic SAS3008 C0     205      10000a00     0<br/> <br/>Diagnostics menu, select an option: [1-99 or e/p/w or 0 to quit] 13<br/>Adapter Phy 0 counters have been cleared<br/>Adapter Phy 1 counters have been cleared<br/>Adapter Phy 2 counters have been cleared<br/>Adapter Phy 3 counters have been cleared<br/>Adapter Phy 4 counters have been cleared<br/>Adapter Phy 5 counters have been cleared<br/>Adapter Phy 6 counters have been cleared<br/>Adapter Phy 7 counters have been cleared<br/>Diagnostics menu, select an option: [1-99 or e/p/w or 0 to quit] 0<br/>
+            <br/>rescue ~ # /mnt/cdrom/lib/lsi-sas/lsiutil -p 1 -a 12,0,0 20<br/>rescue ~ # sleep 60<br/>rescue ~ # /mnt/cdrom/lib/lsi-sas/lsiutil -p 1 -a 12,0,0 20<br/>rescue ~ # sleep 60<br/>rescue ~ # /mnt/cdrom/lib/lsi-sas/lsiutil -p 1 -a 12,0,0 20</pre>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <p>If you find errors on specific phy, you can obtain the serial number of this device by performing an <strong>Inquiry Test</strong>.</p>
+          <p>A. Enter the lsiutil program and select your HBA card (e.g., ioc0)</p>
+          <ac:structured-macro ac:macro-id="b4343ad6-1eb4-4c4d-9939-179ca2665b5e" ac:name="expand" ac:schema-version="1">
+            <ac:rich-text-body>
+              <pre>rescue ~ # /mnt/cdrom/lib/lsi-sas/lsiutil<br/>
+            <br/>LSI Logic MPT Configuration Utility, Version 1.70, July 30, 2013<br/>modprobe: FATAL: Module mptctl not found in directory /lib/modules/5.10.2<br/>/bin/mknod: /dev/mptctl: File exists<br/>
+            <br/>2 MPT Ports found<br/>
+            <br/>  Port Name         Chip Vendor/Type/Rev   MPT Rev  Firmware Rev  IOC<br/>1.  ioc0             LSI Logic SAS3008 C0      205      10000a00     0<br/>2.  ioc1             LSI Logic SAS3008 C0      205      10000a00     0<br/>
+            <br/>Select a device:  [1-2 or 0 to quit] 1<br/>
+            <br/> 1.  Identify firmware, BIOS, and/or FCode<br/>2.  Download firmware (update the FLASH)<br/>4.  Download/erase BIOS and/or FCode (update the FLASH)<br/>8.  Scan for devices<br/>801.  Scan for 1 LUN<br/>810.  Scan for 10 LUN's<br/>10.  Change IOC settings (interrupt coalescing)<br/>13.  Change SAS IO Unit settings<br/>16.  Display attached devices<br/>20.  Diagnostics<br/>21.  RAID actions<br/>23.  Reset target<br/>42.  Display operating system names for devices<br/>43.  Diagnostic Buffer actions<br/>45.  Concatenate SAS firmware and NVDATA files<br/>59.  Dump PCI config space<br/>60.  Show non-default settings<br/>61.  Restore default settings<br/>66.  Show SAS discovery errors<br/>69.  Show board manufacturing information<br/>97.  Reset SAS link, HARD RESET<br/>98.  Reset SAS link<br/>99.  Reset port<br/> e   Enable expert mode in menus<br/> p   Enable paged mode<br/> w   Enable logging</pre>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <p>B. Choose Option #16 to "Display attached devices." Notice the list of "SATA targets". These are the SSD or HDD devices attached to that particular HBA. Notice that the PhyNum is listed for each of these, and this corresponds to the "Adapter Phy X" numbers that you saw when checking the error counters.</p>
+          <ac:structured-macro ac:macro-id="bce28e24-5d53-42d8-b8e5-c0f93ef43ced" ac:name="expand" ac:schema-version="1">
+            <ac:rich-text-body>
+              <pre>Main menu, select an option:  [1-99 or e/p/w or 0 to quit] 16<br/>
+            <br/>SAS3008's links are 6.0 G, 6.0 G, 6.0 G, 6.0 G, 6.0 G, 6.0 G, 6.0 G, 6.0 G<br/>
+            <br/> B___T     SASAddress     PhyNum  Handle  Parent  Type<br/>     50030480241b8f00        0001     SAS Initiator<br/>     50030480241b8f01        0002     SAS Initiator<br/>     50030480241b8f02        0003     SAS Initiator<br/>     50030480241b8f03        0004     SAS Initiator<br/>     50030480241b8f04        0005     SAS Initiator<br/>     50030480241b8f05        0006     SAS Initiator<br/>     50030480241b8f06        0007     SAS Initiator<br/>     50030480241b8f07        0008     SAS Initiator<br/>0  3  4433221100000000    0     0009    0001  SATA Target        &lt;===<br/>0  2  4433221101000000    1     000a    0002  SATA Target        &lt;===<br/>0  1  4433221102000000    2     000b    0003  SATA Target        &lt;===<br/>0  0  4433221103000000    3     000c    0004  SATA Target        &lt;===<br/>0  4  4433221104000000    4     000d    0005  SATA Target        &lt;===<br/>0  5  4433221105000000    5     000e    0006  SATA Target        &lt;===<br/>0  6  4433221106000000    6     000f    0007  SATA Target        &lt;===<br/>0  7  4433221107000000    7     0010    0008  SATA Target        &lt;===<br/>
+            <br/>Type    NumPhys   PhyNum  Handle     PhyNum  Handle  Port  Speed<br/>Adapter    8        0      0001  --&gt;    0     0009     0     6.0<br/>           1      0002  --&gt;    0     000a     1     6.0<br/>           2      0003  --&gt;    0     000b     2     6.0<br/>           3      0004  --&gt;    0     000c     3     6.0<br/>           4      0005  --&gt;    0     000d     4     6.0<br/>           5      0006  --&gt;    0     000e     5     6.0<br/>           6      0007  --&gt;    0     000f     6     6.0<br/>           7      0008  --&gt;    0     0010     7     6.0<br/>
+            <br/>Enclosure Handle   Slots     SASAddress     B___T (SEP)<br/>       0001      8      50030480241b8f00</pre>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <p>C. Note the numbers under the "B____T" column on the far left side. These are the Bus and Target associated for the disk you are interested in. For example, if you previously saw errors on "Adapter Phy 3", then you want to note down Bus 0 and Target 0.</p>
+          <p>D. Enter number "20" to enter the "Diagnostics" menu and then input "1" to perform an <strong>Inquiry Test</strong>.</p>
+          <ac:structured-macro ac:macro-id="78eb5f7a-7bad-4686-8020-ab89900d3846" ac:name="expand" ac:schema-version="1">
+            <ac:rich-text-body>
+              <p>Main menu, select an option: [1-99 or e/p/w or 0 to quit] 20</p>
+              <p>1. Inquiry Test<br/>2. WriteBuffer/ReadBuffer/Compare Test<br/>3. Read Test<br/>4. Write/Read/Compare Test<br/>8. Read Capacity / Read Block Limits Test<br/>12. Display phy counters<br/>13. Clear phy counters<br/>14. SATA SMART Read Test<br/>15. SEP (SCSI Enclosure Processor) Test<br/>18. Report LUNs Test<br/>19. Drive firmware download<br/>20. Expander firmware download<br/>21. Read Logical Blocks<br/>99. Reset port<br/>e Enable expert mode in menus<br/>p Enable paged mode<br/>w Enable logging</p>
+              <p>Diagnostics menu, select an option: [1-99 or e/p/w or 0 to quit] 1</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <p>E. When prompted for the "Target", enter the Target number under the B____T column for the phy you are interested in. When prompted for the "LUN", always enter "0". When prompted for "VPD Page", always hit the RETURN (aka Enter) key to perform a normal inquiry.</p>
+          <p>In the returned "Inquiry Data", you should see the following:</p>
+          <ul>
+            <li>Disk manufacturer: SAMSUNG</li>
+            <li>Disk model (abridged): MZ7LM1T9</li>
+            <li>Disk serial number (note that the last few characters roll over to the next line): 404QS2TVNX0K414127</li>
+          </ul>
+          <p>You can use this information to guide an FE or customer to unseat the faulty drive so that the CVM can boot up successfully.</p>
+          <ac:structured-macro ac:macro-id="c6007d57-388c-48f5-8909-a91c42cb9d55" ac:name="code" ac:schema-version="1">
+            <ac:parameter ac:name="language">bash</ac:parameter>
+            <ac:parameter ac:name="theme">Emacs</ac:parameter>
+            <ac:plain-text-body><![CDATA[Target:  [0-7 or RETURN to quit] 3
+LUN:  [0-255 or RETURN to quit] 0
+VPD Page:  [00-FF or RETURN for normal Inquiry]
+
+ B___T___L  Type       Vendor   Product          Rev
+ 0   3   0  Disk       ATA      SAMSUNG MZ7LM1T9 404Q
+
+74 bytes of Inquiry Data returned
+
+0000 : 00 00 06 12 45 00 00 02 41 54 41 20 20 20 20 20        E   ATA
+0010 : 53 41 4d 53 55 4e 47 20 4d 5a 37 4c 4d 31 54 39    SAMSUNG MZ7LM1T9
+0020 : 34 30 34 51 53 32 54 56 4e 58 30 4b 34 31 34 31    404QS2TVNX0K4141
+0030 : 32 37 20 20 20 20 20 20 00 00 00 80 1e e0 04 60    27             `
+0040 : 04 c0 0b fd 16 23 06 20 00 00                           #
+
+Target:  [0-7 or RETURN to quit]
+
+Diagnostics menu, select an option:  [1-99 or e/p/w or 0 to quit] 0]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <h4>4. Check the kernel logs inside the rescue shell for signs of problems</h4>
+          <p>Look for hardware errors in dmesg</p>
+          <ac:structured-macro ac:macro-id="ef5414fc-6308-44aa-9891-932a1d8eb1f0" ac:name="code" ac:schema-version="1">
+            <ac:parameter ac:name="language">bash</ac:parameter>
+            <ac:parameter ac:name="theme">Emacs</ac:parameter>
+            <ac:plain-text-body><![CDATA[rescue ~ # dmesg -T | less
+
+[   12.937998] sd 2:0:2:0: [sdc] Write cache: disabled, read cache: enabled, supports DPO and FUA
+[   12.974759]  sdc: sdc1 sdc2 sdc3 sdc4
+[   12.979414] sd 2:0:2:0: [sdc] Attached SCSI disk
+[   13.181758] sd 2:0:0:0: [sda] Write Protect is off
+[   13.181763] sd 2:0:0:0: [sda] Mode Sense: 9b 00 10 08
+[   13.183278] sd 2:0:0:0: [sda] Write cache: disabled, read cache: enabled, supports DPO and FUA
+[   13.185061] sd 2:0:1:0: [sdb] Write Protect is off
+[   13.185066] sd 2:0:1:0: [sdb] Mode Sense: 9b 00 10 08
+[   13.186561] sd 2:0:1:0: [sdb] Write cache: disabled, read cache: enabled, supports DPO and FUA
+[   13.268034]  sdb: sdb1
+[   13.268458]  sda: sda1
+[   13.296152] sd 2:0:1:0: [sdb] Attached SCSI disk
+[   13.301182] sd 2:0:0:0: [sda] Attached SCSI disk
+[   13.448085] ISO 9660 Extensions: RRIP_1991A
+[   26.456654] 8021q: adding VLAN 0 to HW filter on device eth0
+[   26.458115] 8021q: adding VLAN 0 to HW filter on device eth1
+[   26.459987] 8021q: adding VLAN 0 to HW filter on device eth2
+[   31.470431] random: ssh-keygen: uninitialized urandom read (32 bytes read)
+[   31.674840] random: sshd: uninitialized urandom read (32 bytes read)
+[   36.352162] random: crng init done]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <h3>Mount /home and read the CVM logs</h3>
+          <p>Often times, the CVM logs just prior to the shutdown will contain clues about what caused it to fail. Here is how to mount /home so that you can read these right from the rescue shell.</p>
+          <h4>1. Mount CVM Infrastructure partitions or RAID groups</h4>
+          <p>
+            <strong>Multi-SSD/NVMe Node</strong>
+          </p>
+          <p>Nodes with at least two SSDs or NVMe drives will place the /home partition in a software RAID group (/dev/mdX) that spans the 40GB third partition on two of these drives. On NX platforms, this is usually the first two drives in the array.</p>
+          <p>A. Assemble the RAID so that the mds show up. There should be two 10GB mds (boot and altboot for AOS) and one 40GB md for /home.</p>
+          <ac:structured-macro ac:macro-id="aa2973ee-2777-4f54-ae3f-414ae4fc6edc" ac:name="code" ac:schema-version="1">
+            <ac:parameter ac:name="language">bash</ac:parameter>
+            <ac:parameter ac:name="theme">Emacs</ac:parameter>
+            <ac:plain-text-body><![CDATA[rescue ~ # mdadm --assemble --scan
+mdadm: failed to get exclusive lock on mapfile
+mdadm: failed to get exclusive lock on mapfile - continue anyway...
+mdadm: /dev/md/phoenix:2 has been started with 2 drives.
+mdadm: failed to get exclusive lock on mapfile - continue anyway...
+mdadm: /dev/md/phoenix:1 has been started with 2 drives.
+mdadm: failed to get exclusive lock on mapfile - continue anyway...
+mdadm: /dev/md/phoenix:0 has been started with 2 drives.]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <ac:structured-macro ac:macro-id="9523f90b-de9d-4bbc-8ed0-cdde269d0341" ac:name="expand" ac:schema-version="1">
+            <ac:parameter ac:name="title">Example of before and after assembling RAID. Click here to expand...</ac:parameter>
+            <ac:rich-text-body>
+              <p>BEFORE ASSEMBLING RAID</p>
+              <p>rescue ~ # cat /proc/mdstat<br/>Personalities : [raid1]<br/>unused devices: &lt;none&gt;</p>
+              <p>
+                <br/>
+              </p>
+              <p>AFTER ASSEMBLING RAID</p>
+              <p>rescue ~ # cat /proc/mdstat<br/>Personalities : [raid1]<br/>md125 : active raid1 sdd1[0] sdc1[1]<br/>10475520 blocks super 1.1 [2/2] [UU]<br/>bitmap: 0/1 pages [0KB], 65536KB chunk</p>
+              <p>md126 : active raid1 sdd2[0] sdc2[1]<br/>10475520 blocks super 1.1 [2/2] [UU]<br/>bitmap: 0/1 pages [0KB], 65536KB chunk</p>
+              <p>md127 : active raid1 sdd3[0] sdc3[1]<br/>41908224 blocks super 1.1 [2/2] [UU]<br/>bitmap: 0/1 pages [0KB], 65536KB chunk</p>
+              <p>unused devices: &lt;none&gt;</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <p>B. Mount the three raid groups so that it is possible to browse them. Replace "X" in the command below with the number of the mds that show up in the "cat /proc/mdstat" output after assembling the RAID. For example, md125, md126, and so on. These directories will then appear under /mnt where you can browse them.</p>
+          <ac:structured-macro ac:macro-id="44f5b227-0a73-468f-8049-ead8e99663d4" ac:name="code" ac:schema-version="1">
+            <ac:parameter ac:name="language">bash</ac:parameter>
+            <ac:parameter ac:name="theme">Emacs</ac:parameter>
+            <ac:plain-text-body><![CDATA[rescue ~ # for d in /dev/md?; do mkdir -p ${d/dev/mnt}; mount $d ${d/dev/mnt}; done]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <ac:structured-macro ac:macro-id="bbb9f657-827f-4ff3-bdb1-3de314094dec" ac:name="expand" ac:schema-version="1">
+            <ac:parameter ac:name="title">Example. Click here to expand...</ac:parameter>
+            <ac:rich-text-body>
+              <p>rescue ~ # for d in /dev/md125; do mkdir -p ${d/dev/mnt}; mount $d ${d/dev/mnt}; done</p>
+              <p>rescue ~ # df -h<br/>Filesystem Size Used Avail Use% Mounted on<br/>rootfs 24G 319M 24G 2% /<br/>none 24G 0 24G 0% /dev<br/>/dev/sr0 726M 726M 0 100% /mnt/cdrom<br/>/dev/md125 9.8G 5.5G 4.3G 57% /mnt/md125</p>
+              <p>rescue ~ # for d in /dev/md126; do mkdir -p ${d/dev/mnt}; mount $d ${d/dev/mnt}; done</p>
+              <p>rescue ~ # df -h<br/>Filesystem Size Used Avail Use% Mounted on<br/>rootfs 24G 319M 24G 2% /<br/>none 24G 0 24G 0% /dev<br/>/dev/sr0 726M 726M 0 100% /mnt/cdrom<br/>/dev/md125 9.8G 5.5G 4.3G 57% /mnt/md125<br/>/dev/md126 9.8G 37M 9.7G 1% /mnt/md126</p>
+              <p>rescue ~ # for d in /dev/md127; do mkdir -p ${d/dev/mnt}; mount $d ${d/dev/mnt}; done</p>
+              <p>rescue ~ # df -h<br/>Filesystem Size Used Avail Use% Mounted on<br/>rootfs 24G 319M 24G 2% /<br/>none 24G 0 24G 0% /dev<br/>/dev/sr0 726M 726M 0 100% /mnt/cdrom<br/>/dev/md125 9.8G 5.5G 4.3G 57% /mnt/md125<br/>/dev/md126 9.8G 37M 9.7G 1% /mnt/md126<br/>/dev/md127 40G 11G 28G 28% /mnt/md127</p>
+              <p>rescue ~ # ls -la /mnt/<br/>total 16<br/>drwxr-xr-x 8 root root 160 Apr 28 18:22 .<br/>drwxr-xr-x 17 root root 720 Apr 28 18:02 ..<br/>drwxr-x--- 14 root root 4096 Apr 28 18:01 cdrom<br/>drwxr-xr-x 2 root root 40 Apr 28 18:02 data<br/>drwxr-xr-x 2 root root 40 Apr 28 18:02 disk<br/>drwxr-xr-x 19 root root 4096 Apr 28 16:44 md125<br/>drwxr-xr-x 3 root root 4096 Apr 28 15:14 md126<br/>drwxr-xr-x 18 root root 4096 Apr 28 15:51 md127</p>
+              <p>rescue ~ # ls -la /mnt/md*<br/>/mnt/md125:<br/>total 100<br/>drwxr-xr-x 19 root root 4096 Apr 28 16:44 .<br/>drwxr-xr-x 8 root root 160 Apr 28 18:22 ..<br/>-rw-r--r-- 1 root root 217 Apr 28 16:00 .cvm_uuid<br/>-rwxr-xr-x 1 root root 0 Dec 13 13:20 .dockerenv<br/>drwxr-xr-x 3 root root 4096 Apr 28 15:44 .local<br/>-rw-r--r-- 1 root root 853 Apr 28 16:43 .nutanix_active_svm_partition<br/>lrwxrwxrwx 1 root root 7 Oct 11 2021 bin -&gt; usr/bin<br/>dr-xr-xr-x 6 root root 4096 Apr 28 15:43 boot<br/>drwxr-xr-x 4 root root 4096 Dec 13 13:20 dev<br/>drwxr-xr-x 102 root root 12288 Apr 28 16:43 etc<br/>drwxr-xr-x 3 root root 4096 Dec 13 13:20 home<br/>lrwxrwxrwx 1 root root 7 Oct 11 2021 lib -&gt; usr/lib<br/>lrwxrwxrwx 1 root root 9 Oct 11 2021 lib64 -&gt; usr/lib64<br/>drwx------ 2 root root 16384 May 28 2024 lost+found<br/>drwxr-xr-x 2 root root 4096 Oct 11 2021 media<br/>drwxr-xr-x 2 root root 4096 Oct 11 2021 mnt<br/>drwxr-xr-x 3 root root 4096 Dec 13 13:18 opt<br/>drwxr-xr-x 2 root root 4096 May 28 2024 proc<br/>dr-xr-x--- 7 root root 4096 Apr 28 15:45 root<br/>drwxr-xr-x 21 root root 4096 Dec 13 13:19 run<br/>lrwxrwxrwx 1 root root 8 Oct 11 2021 sbin -&gt; usr/sbin<br/>drwxr-xr-x 4 root root 4096 Jan 28 11:44 srv<br/>drwxr-xr-x 2 root root 4096 May 28 2024 sys<br/>drwxrwxrwt 7 root root 4096 Apr 28 15:47 tmp<br/>drwxr-xr-x 12 root root 4096 May 28 2024 usr<br/>drwxr-xr-x 2 root root 4096 Apr 28 15:14 var</p>
+              <p>/mnt/md126:<br/>total 20<br/>drwxr-xr-x 3 root root 4096 Apr 28 15:14 .<br/>drwxr-xr-x 8 root root 160 Apr 28 18:22 ..<br/>drwx------ 2 root root 16384 Apr 28 15:14 lost+found</p>
+              <p>/mnt/md127:<br/>total 80<br/>drwxr-xr-x 18 root root 4096 Apr 28 15:51 .<br/>drwxr-xr-x 8 root root 160 Apr 28 18:22 ..<br/>drwxr-x--- 3 2000 2000 4096 Apr 28 15:47 admin<br/>drwxr-xr-x 5 root root 4096 Apr 28 15:55 apache<br/>drwxr-x--- 51 1000 1000 4096 Apr 28 16:06 certs<br/>drwxr-x--- 2 550 550 4096 Apr 28 15:45 cloud<br/>drwxr-xr-x 3 root root 4096 Apr 28 15:48 docker<br/>drwxr-x--- 2 25000 25000 4096 Apr 28 15:45 epsilon<br/>drwxr-x--- 2 530 530 4096 Apr 28 15:45 flasksvc<br/>drwxr-x--- 2 540 540 4096 Apr 28 15:45 igw<br/>drwxr-xr-x 10 root root 4096 Apr 28 15:50 log<br/>drwx------ 2 root root 16384 Apr 28 15:14 lost+found<br/>drwx------ 5 560 560 4096 Apr 28 16:01 ngt<br/>drwxr-x--- 28 1000 1000 4096 Apr 28 17:57 nutanix<br/>drwxr-x--- 2 root 575 4096 Apr 28 16:04 private<br/>drwx------ 2 root root 4096 Apr 28 16:07 saltstates<br/>dr-x------ 2 root root 4096 Apr 28 15:45 scripts<br/>drwxr-xr-x 2 root root 4096 Apr 28 15:46 ssh</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <p>
+            <strong>Single-SSD Node</strong>
+          </p>
+          <p>On a node containing only a single SSD, you will need to identify the CVM boot drive manually using "lsblk" or fdisk. Look for the one with four partitions.</p>
+          <p>A. Run "lsblk" and look for the drive which has 4 partitions. This is the CVM boot drive.</p>
+          <ac:structured-macro ac:macro-id="26fc23cf-5ef0-4d30-9e1d-15d810ce6ca7" ac:name="code" ac:schema-version="1">
+            <ac:parameter ac:name="language">bash</ac:parameter>
+            <ac:parameter ac:name="theme">Emacs</ac:parameter>
+            <ac:parameter ac:name="title">Identify the CVM boot drive containing 4 partitions. In this example, sda is the boot drive.</ac:parameter>
+            <ac:plain-text-body><![CDATA[rescue ~ # lsblk -o name,maj:min,rm,size,ro,type,serial
+NAME        MAJ:MIN RM   SIZE RO TYPE SERIAL
+sda           8:48   0   1.8T  0 disk
+|-sda2        8:50   0    10G  0 part
+|-sda3        8:51   0    40G  0 part
+|-sda1        8:49   0    10G  0 part
+`-sda4        8:52   0   1.7T  0 part
+sdb           8:16   0   1.8T  0 disk
+`-sdb1        8:17   0   1.8T  0 part
+sdc           8:96   0   1.8T  0 disk
+`-sdc1        8:97   0   1.8T  0 part
+sdd           8:64   0   1.8T  0 disk
+`-sdd1        8:65   0   1.8T  0 part]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <p>B. Mount the first three partitions on the CVM boot drive. Replace the "X" in the command below with the sdX name for the drive that had 4 partitions in the lsblk output (sda in the example above). These directories will then appear under /mnt where you can browse them.</p>
+          <ac:structured-macro ac:macro-id="381684c3-cdd1-4573-b020-2af8ce0622ea" ac:name="code" ac:schema-version="1">
+            <ac:parameter ac:name="language">bash</ac:parameter>
+            <ac:parameter ac:name="theme">Emacs</ac:parameter>
+            <ac:plain-text-body><![CDATA[rescue ~ # for d in /dev/sdX{1..3}; do mkdir -p ${d/dev/mnt}; mount $d ${d/dev/mnt}; done]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <h4>2. Read the CVM logs from the rescue shell</h4>
+          <p>These are the main logs to focus on for hardware issues:</p>
+          <ul>
+            <li>CVM Kernel - /home/log/messages*</li>
+            <li>Hades - /home/nutanix/data/logs/hades*</li>
+            <li>Iostat in Sysstats - /home/nutanix/data/log/sysstats/iostat.INFO*</li>
+          </ul>
+          <p>
+            <br/>
+          </p>
+          <ac:structured-macro ac:macro-id="ea4c2d8d-3c9b-4ead-9f7f-dd37463aa683" ac:name="expand" ac:schema-version="1">
+            <ac:parameter ac:name="title">Checking for nvme disk entries in CVM kernel logs. Click here to expand...</ac:parameter>
+            <ac:rich-text-body>
+              <p>rescue nutanix # cd /mnt/md127/log</p>
+              <p>rescue log # grep -i nvme messages</p>
+              <p>2025-04-28T15:50:39.514329+00:00 NTNX-18SM57220118-A-CVM smartd[1208]: Device: /dev/nvme3, Critical Warning (0x10): VolMemBackup</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <ac:structured-macro ac:macro-id="8ffd8cb2-1a8b-4cae-8585-52f97df824b7" ac:name="expand" ac:schema-version="1">
+            <ac:parameter ac:name="title">Checking hades logs for disk failures. Click here to expand...</ac:parameter>
+            <ac:rich-text-body>
+              <p>rescue ~ # less /mnt/md127/nutanix/data/logs/hades.out</p>
+              <p>2025-04-28 16:10:01,939Z INFO DHMThread nvme_disk.py:224 Disk /dev/spdk/nvme0n1 is bad, critical warning param is 16<br/>2025-04-28 16:10:01,939Z ERROR DHMThread disk_diagnostics.py:1928 Health check on disk S439NC0T102690 failed 1 time(s). Marking the disk maybe_bad<br/>...<br/>2025-04-28 16:10:01,949Z ERROR DHMThread disk_diagnostics.py:1964 Disk: S439NC0T102690 seems to have failed. Marking disk maybe_bad in Hades proto<br/>2025-04-28 16:10:01,971Z INFO DHMThread hades_utils.py:623 Successfully marked maybe_bad=True in Hades proto for disk: S439NC0T102690<br/>...<br/>2025-04-28 16:10:02,034Z ERROR DHMThread notify.py:342 notification=PhysicalDiskPredictiveFailure service_vm_id=5 disk_id=58 disk_serial=S439NC0T102690 disk_location=10 timestamp_csecs=174585660203 disk_model=SAMSUNG MZQLB1T9HAJR-00007 node_serial_number=OM181S044173 node_position=A<br/>...<br/>2025-04-28 16:10:09,144Z INFO DHMThread disk_diagnostics.py:1981 Following disks have failed: ['S439NC0T102690']</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <ac:structured-macro ac:macro-id="834f3705-c12d-4219-b8d4-cf161019bc0a" ac:name="expand" ac:schema-version="1">
+            <ac:parameter ac:name="title">Checking iostat.INFO for high r_await or w_await values indicating slow drives. Click here to expand...</ac:parameter>
+            <ac:rich-text-body>
+              <p>rescue ~ # less /mnt/md127/nutanix/data/logs/sysstats/iostat.INFO</p>
+              <p>#TIMESTAMP 1745863007 : 04/28/2025 05:56:47 PM</p>
+              <pre class="ckeditor_codeblock">avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+           2.29    4.20    1.83    9.44    0.00   82.24
+
+Device:         rrqm/s   wrqm/s     r/s     w/s    rMB/s    wMB/s avgrq-sz avgqu-sz   await r_await w_await  svctm  %util
+nvme3n1         130.60     1.00   35.40    9.60     3.62     0.04   166.65     0.02    0.40    0.51    0.02   0.05   0.24
+nvme2n1         153.20     1.80  168.80  777.20     4.98     4.25    19.99     0.09    0.10    0.46    0.02   0.02   1.44
+nvme0n1         230.80    48.60  153.60   54.80    12.84     0.42   130.28     3.31   15.91   16.05   15.50   1.98  41.28
+<span style="color: rgb(231,76,60);">nvme1n1           0.00    63.60    0.20  109.60     0.00     6.15   114.70    34.43  <strong>311.16</strong>    1.00  311.73   9.08  99.72</span>
+          </pre>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <h3>Checking CVM Partitions and RAID Status</h3>
+          <h4>1. Verify that Partitions on CVM boot drive(s) contain the expected Size, Partition Table, and Filesystem</h4>
+          <ul>
+            <li>CVM boot drives should have four partitions, as in the example below.</li>
+            <li>Data drives will have one partition</li>
+            <li>New drives will (typically) have no partitions</li>
+          </ul>
+          <ac:structured-macro ac:macro-id="f9d29653-0473-4f71-83d5-d519e839f107" ac:name="warning" ac:schema-version="1">
+            <ac:rich-text-body>
+              <p>Never modify partitions on a drive which is still logically part of a cluster, as doing so can put customer data at risk. Always logically remove a disk before reformatting or repartitioning it. Consult with a Hardware/Infra SME if you are unsure of whether or how to use the utilities cited on this page.</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <ac:structured-macro ac:macro-id="0162cddb-6426-4ac2-ab0f-add5a124dbee" ac:name="code" ac:schema-version="1">
+            <ac:parameter ac:name="language">bash</ac:parameter>
+            <ac:parameter ac:name="theme">Emacs</ac:parameter>
+            <ac:plain-text-body><![CDATA[rescue ~ # sudo parted /dev/sda
+GNU Parted 3.1
+Using /dev/sda
+Welcome to GNU Parted! Type 'help' to view a list of commands.
+ 
+(parted) p            
+                                                     
+Model: ATA SAMSUNG MZ7LH3T8 (scsi)
+Disk /dev/sda: 3841GB
+Sector size (logical/physical): 512B/4096B
+Partition Table: gpt
+Disk Flags: 
+Number  Start   End     Size    File system  Name     Flags
+ 1      1049kB  10.7GB  10.7GB  ext4         primary
+ 2      32.2GB  42.9GB  10.7GB  ext4         primary
+ 3      64.4GB  107GB   42.9GB  ext4         primary
+ 4      150GB   3841GB  3690GB  ext4         primary
+
+(parted) q]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <h4>2. List all Disk Partitions and RAID Groups (only expected on Dual SSD, All-Flash platforms, and All-NVMe platforms)</h4>
+          <ac:structured-macro ac:macro-id="ea193966-eb86-47a8-82bc-edf734ccf828" ac:name="expand" ac:schema-version="1">
+            <ac:parameter ac:name="title">Example of Single SSD Drive platform. Click here to expand...</ac:parameter>
+            <ac:rich-text-body>
+              <p>rescue ~ # lsblk<br/>NAME MAJ:MIN RM SIZE RO TYPE MOUNTPOINT<br/>sdb 8:16 0 1.8T 0 disk<br/>`-sdb1 8:17 0 1.8T 0 part<br/>sr0 11:0 1 419.7M 0 rom /mnt/cdrom<br/>sdc 8:32 0 894.3G 0 disk<br/>|-sdc2 8:34 0 10G 0 part<br/>|-sdc3 8:35 0 40G 0 part<br/>|-sdc1 8:33 0 10G 0 part<br/>`-sdc4 8:36 0 759.6G 0 part<br/>sda 8:0 0 1.8T 0 disk<br/>`-sda1 8:1 0 1.8T 0 part</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <ac:structured-macro ac:macro-id="67759471-3a77-48d7-88cc-8eedd6a3697f" ac:name="expand" ac:schema-version="1">
+            <ac:parameter ac:name="title">Example of Multi-SSD/NVMe Drive platform. Click here to expand...</ac:parameter>
+            <ac:rich-text-body>
+              <p>rescue ~ # lsblk<br/>NAME MAJ:MIN RM SIZE RO TYPE MOUNTPOINT<br/>sdf 8:80 0 1.8T 0 disk<br/>`-sdf1 8:81 0 1.8T 0 part<br/>sdd 8:48 0 1.8T 0 disk<br/>`-sdd1 8:49 0 1.8T 0 part<br/>sdb 8:16 0 745.2G 0 disk<br/>|-sdb4 8:20 0 610.6G 0 part<br/>|-sdb2 8:18 0 10G 0 part<br/>| `-md1 9:1 0 10G 0 raid1<br/>|-sdb3 8:19 0 40G 0 part<br/>| `-md2 9:2 0 40G 0 raid1<br/>`-sdb1 8:17 0 10G 0 part<br/>`-md0 9:0 0 10G 0 raid1<br/>sr0 11:0 1 994M 0 rom /mnt/local<br/>sdg 8:96 0 59.6G 0 disk<br/>|-sdg9 8:105 0 2.5G 0 part<br/>|-sdg7 8:103 0 110M 0 part<br/>|-sdg5 8:101 0 250M 0 part<br/>|-sdg1 8:97 0 4M 0 part<br/>|-sdg10 8:106 0 52.3G 0 part<br/>|-sdg8 8:104 0 286M 0 part<br/>|-sdg6 8:102 0 250M 0 part<br/>`-sdg2 8:98 0 4G 0 part<br/>sde 8:64 0 1.8T 0 disk<br/>`-sde1 8:65 0 1.8T 0 part<br/>sdc 8:32 0 1.8T 0 disk<br/>`-sdc1 8:33 0 1.8T 0 part<br/>sda 8:0 0 745.2G 0 disk<br/>|-sda4 8:4 0 610.6G 0 part<br/>|-sda2 8:2 0 10G 0 part<br/>| `-md1 9:1 0 10G 0 raid1<br/>|-sda3 8:3 0 40G 0 part<br/>| `-md2 9:2 0 40G 0 raid1<br/>`-sda1 8:1 0 10G 0 part<br/>`-md0 9:0 0 10G 0 raid1</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <h4>3. Check if RAID Groups are in an Active/Clean State</h4>
+          <ac:structured-macro ac:macro-id="a1e8ca2e-a9c4-44e4-834a-7d3f81b00005" ac:name="code" ac:schema-version="1">
+            <ac:parameter ac:name="language">bash</ac:parameter>
+            <ac:parameter ac:name="theme">Emacs</ac:parameter>
+            <ac:plain-text-body><![CDATA[rescue / # mdadm --detail /dev/md[012]
+/dev/md0:
+        Version : 1.1
+  Creation Time : Tue Mar 27 18:07:59 2018
+     Raid Level : raid1
+     Array Size : 10476544 (9.99 GiB 10.73 GB)
+  Used Dev Size : 10476544 (9.99 GiB 10.73 GB)
+   Raid Devices : 2
+  Total Devices : 2
+    Persistence : Superblock is persistent
+  Intent Bitmap : Internal
+    Update Time : Thu Mar 29 20:46:20 2018
+          State : clean
+ Active Devices : 2
+Working Devices : 2
+ Failed Devices : 0
+  Spare Devices : 0
+           Name : phoenix:0  (local to host phoenix)
+           UUID : c6809301:7fe536b5:2210ce61:6c29032b
+         Events : 24
+    Number   Major   Minor   RaidDevice State
+       0       8        1        0      active sync   /dev/sda1
+       1       8       17        1      active sync   /dev/sdb1]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <h3>Correcting Filesystem Inconsistencies (KB-13931 Action Plan 3)</h3>
+          <ac:structured-macro ac:macro-id="d23af161-0080-40a6-b481-2ec7d8aa5bf2" ac:name="warning" ac:schema-version="1">
+            <ac:parameter ac:name="title">Note</ac:parameter>
+            <ac:rich-text-body>
+              <p>This process should ONLY be followed if a particular scenario meets ALL the qualifying criteria detailed in <a href="https://nutanix.lightning.force.com/lightning/r/Knowledge_Base__kav/ka0VO000000D7TVYA0/view">KB-13931</a> for Action Plan 3. This means that the CVM should be overwise healthy and the only problem with the infrastructure is a failure of the fs_inconsistency_check in NCC.</p>
+              <p>Do not attempt to repair the filesystem if your CVM is unstable, unbootable, or if you suspect there might be a hardware issue. Consult an STL or a DevEx Engineer in any such cases.</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <ac:structured-macro ac:macro-id="8b3d9887-97df-44e0-8095-3c851f0d87c7" ac:name="code" ac:schema-version="1">
+            <ac:parameter ac:name="language">bash</ac:parameter>
+            <ac:parameter ac:name="theme">Emacs</ac:parameter>
+            <ac:parameter ac:name="title">Example of performing Action Plan 3 in rescue shell</ac:parameter>
+            <ac:plain-text-body><![CDATA[rescue ~ # fsck -TMVfy /dev/md125
+/dev/md125 is not mounted
+[/sbin/fsck.ext4 (1) -- /dev/md125] fsck.ext4 -fy /dev/md125
+e2fsck 1.43.3 (04-Sep-2016)
+Pass 1: Checking inodes, blocks, and sizes
+Pass 2: Checking directory structure
+Pass 3: Checking directory connectivity
+Pass 4: Checking reference counts
+Pass 5: Checking group summary information
+/dev/md125: 77361/655360 files (0.1% non-contiguous), 1477062/2618880 blocks]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <ac:structured-macro ac:macro-id="e2a5fc69-d10b-4d75-9aec-6a374c05304f" ac:name="code" ac:schema-version="1">
+            <ac:parameter ac:name="language">bash</ac:parameter>
+            <ac:parameter ac:name="theme">Emacs</ac:parameter>
+            <ac:parameter ac:name="title">Checking filesystem status in rescue shell</ac:parameter>
+            <ac:plain-text-body><![CDATA[rescue ~ # for i in `blkid | awk -F : '!/xfs|iso9660/{print $1}'`;do echo $i;tune2fs -l $i | egrep 'Filesystem state|Last checked|Maximum|error|orphan';done
+...
+/dev/md125
+Filesystem state:         clean
+Maximum mount count:      1
+Last checked:             Mon Apr 28 19:13:32 2025]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <p>
+            <br/>
+          </p>
+        </ac:rich-text-body>
+      </ac:structured-macro>
+      <h2>Known Issues and Future Improvements</h2>
+      <p>Stay informed about current limitations and upcoming enhancements to Phoenix debugging tools and workflows.</p>
+      <ac:structured-macro ac:macro-id="504a1450-8bd1-4d63-8609-c8ecf2f072b5" ac:name="expand" ac:schema-version="1">
+        <ac:parameter ac:name="title">Current Issues and Development Roadmap</ac:parameter>
+        <ac:rich-text-body>
+          <ac:structured-macro ac:macro-id="4cee32d3-a06c-419d-8058-dbb1cc516b0e" ac:name="info" ac:schema-version="1">
+            <ac:parameter ac:name="title">About This Section</ac:parameter>
+            <ac:rich-text-body>
+              <p>This table tracks known limitations in current Phoenix tools and planned improvements. Check here if you encounter unexpected behavior or want to know about upcoming features.</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <h3>Current Issues and Enhancement Tracking</h3>
+          <table class="wrapped">
+            <colgroup> <col/> <col/> <col/> </colgroup>
+            <tbody>
+              <tr>
+                <th>Jira</th>
+                <th>Description</th>
+                <th>Fix Release</th>
+              </tr>
+              <tr>
+                <td>
+                  <a href="https://jira.nutanix.com/browse/ENG-636777">ENG-636777</a>
+                </td>
+                <td>cvm_diagnose could have option to transfer AOS after network setup</td>
+                <td>TBD</td>
+              </tr>
+              <tr>
+                <td>
+                  <a href="https://jira.nutanix.com/browse/ENG-566041">ENG-566041</a>
+                </td>
+                <td>cvm_diagnose can include phoenix env for diagnosis</td>
+                <td>TBD</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            <br/>
+          </p>
+          <p>
+            <br/>
+          </p>
+        </ac:rich-text-body>
+      </ac:structured-macro>
+    </ac:layout-cell>
+  </ac:layout-section>
+  <ac:layout-section ac:type="single">
+    <ac:layout-cell>
+      <ac:structured-macro ac:macro-id="a5650cd0-5666-41fc-a3ab-c3eaca42b9cf" ac:name="macrosuite-button" ac:schema-version="1">
+        <ac:parameter ac:name="macroId">rC5a5Lc8KpDDv5TXp4bt-</ac:parameter>
+        <ac:parameter ac:name="data">JTdCJTIyYnV0dG9uVHlwZSUyMiUzQSUyMmljb25fcmlnaHQlMjIlMkMlMjJidXR0b25TaXplJTIyJTNBJTIybGFyZ2UlMjIlMkMlMjJidXR0b25UZXh0JTIyJTNBJTIyUHJvY2VlZCUyMHRvJTIwQ2hhcHRlciUyMDglM0ElMjBTcGVjaWFsJTIwQ2FzZXMlMjIlMkMlMjJidXR0b25SYWRpdXMlMjIlM0ExJTJDJTIyYnV0dG9uV2lkdGglMjIlM0EyMCUyQyUyMmJ1dHRvbkNvbG9yJTIyJTNBJTIyJTIzMDAwMDAwMDAlMjIlMkMlMjJidXR0b25Gb250Q29sb3IlMjIlM0ElMjIlMjMwMDY1ZmZmZiUyMiUyQyUyMmJ1dHRvbkJvcmRlckNvbG9yJTIyJTNBJTIyJTIzMDAwMDAwMDAlMjIlMkMlMjJidXR0b25MaW5rJTIyJTNBJTIyJTdCJTVDJTIyaWQlNUMlMjIlM0ElNUMlMjI0MzEzMjgzMDYlNUMlMjIlMkMlNUMlMjJsaW5rJTVDJTIyJTNBJTVDJTIyJTJGeCUyRk1veTFHUSU1QyUyMiUyQyU1QyUyMnRpdGxlJTVDJTIyJTNBJTVDJTIyRFJBRlQlMjAtJTIwU3BlY2lhbCUyMENhc2VzJTVDJTIyJTJDJTVDJTIydHlwZSU1QyUyMiUzQSU1QyUyMnBhZ2UlNUMlMjIlMkMlNUMlMjJzb3VyY2UlNUMlMjIlM0ElNUMlMjJwYWdlJTVDJTIyJTdEJTIyJTJDJTIyYnV0dG9uTmV3VGFiJTIyJTNBJTIydHJ1ZSUyMiUyQyUyMmJ1dHRvbk5ld0xpbmslMjIlM0ElMjIlMjIlMkMlMjJidXR0b25JY29uJTIyJTNBJTIyYm9vdHN0cmFwJTJGQXJyb3dSaWdodENpcmNsZSUyMiUyQyUyMmJ1dHRvbkhvdmVyQ29sb3IlMjIlM0ElMjJ0cmFuc3BhcmVudCUyMiUyQyUyMmJ1dHRvbkJvcmRlckhvdmVyQ29sb3IlMjIlM0ElMjIlMjMwMDAwMDAwMCUyMiUyQyUyMmJ1dHRvbkZvbnRIb3ZlckNvbG9yJTIyJTNBJTIyJTIzMDAwMDAwMDAlMjIlMkMlMjJidXR0b25JY29uSG92ZXJDb2xvciUyMiUzQSUyMiUyMzAwMDAwMDAwJTIyJTJDJTIyaXNCdXR0b25TaGFkb3dPbiUyMiUzQXRydWUlMkMlMjJidXR0b25JY29uQ29sb3IlMjIlM0ElMjIlMjMwMDY1ZmZmZiUyMiUyQyUyMmJ1dHRvbldpZHRoRGV0ZWN0aW9uJTIyJTNBNjAlMkMlMjJlbW9qaUVuYWJsZWQlMjIlM0FmYWxzZSUyQyUyMmVtb2ppJTIyJTNBJTIyJTdCJTdEJTIyJTdE</ac:parameter>
+      </ac:structured-macro>
+      <p>
+        <br/>
+      </p>
+    </ac:layout-cell>
+  </ac:layout-section>
+</ac:layout>

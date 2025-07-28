@@ -1,0 +1,948 @@
+<p>
+  <ac:structured-macro ac:macro-id="5435574a-8d7a-4ba9-8496-5c710fad23e2" ac:name="toc" ac:schema-version="1"/>
+</p>
+<h1>
+  <strong>1. Article Types and Visibility</strong>
+</h1>
+<p>
+  <span>Consider the visibility aspect when arranging the content in the article.</span>
+</p>
+<h2>
+  <strong>Article Record Types</strong>
+</h2>
+<ul>
+  <li>
+    <strong>Break-Fix</strong>
+    <span>: For issues tied to a specific product/feature. Supports Jira linking and Versions Affected. Explains how to “fix” or overcome a specific problem. Contains an error message or erroneous behaviour.</span>
+  </li>
+  <li>
+    <strong>Generic Troubleshooting / FAQ</strong>
+    <span>: Non-issue-focused, usually does not mention an error message. Describes a workflow, an approach to troubleshooting rather than provides a solution to an issue. Does not have Jira or Versions Affected fields. Covers a class of problems, instead of specific issues or contains answers to frequently asked questions.</span>
+  </li>
+</ul>
+<h2>
+  <strong>Article Fields visibility</strong>
+</h2>
+<p>
+  <span>Not all KB fields are visible to our customers. </span>
+</p>
+<p>
+  <span style="color: rgb(0,0,0);">
+    <strong>Externally visible fields:</strong>
+  </span>
+</p>
+<ul>
+  <li style="color: rgb(0,0,0);">
+    <p>
+      <span style="color: rgb(0,0,0);">Title</span>
+    </p>
+  </li>
+  <li style="color: rgb(0,0,0);">
+    <p>
+      <span style="color: rgb(0,0,0);">Summary</span>
+    </p>
+  </li>
+  <li style="color: rgb(0,0,0);">
+    <p>
+      <span style="color: rgb(0,0,0);">Description</span>
+    </p>
+  </li>
+  <li style="color: rgb(0,0,0);">
+    <p>
+      <span style="color: rgb(0,0,0);">Solution</span>
+    </p>
+  </li>
+  <li style="color: rgb(0,0,0);">
+    <p>
+      <span style="color: rgb(0,0,0);">Versions Affected</span>
+    </p>
+  </li>
+  <li style="color: rgb(0,0,0);">
+    <p>
+      <span style="color: rgb(0,0,0);">Tags</span>
+    </p>
+  </li>
+</ul>
+<p>
+  <span style="color: rgb(0,0,0);">
+    <strong>Internally visible fields:</strong>
+  </span>
+</p>
+<ul>
+  <li style="color: rgb(0,0,0);">
+    <p>
+      <span style="color: rgb(0,0,0);">Internal Comments</span>
+    </p>
+  </li>
+  <li style="color: rgb(0,0,0);">
+    <span style="color: rgb(0,0,0);">Jira template</span>
+  </li>
+  <li style="color: rgb(0,0,0);">
+    <span style="color: rgb(0,0,0);">Reason for submission</span>
+  </li>
+  <li>
+    <span>URL</span>
+  </li>
+</ul>
+<h2>
+  <strong>Article visibility levels</strong>
+</h2>
+<ul>
+  <li>
+    <strong>Public</strong>
+    <span> - the only type indexable by Internet search engines, accessible by anyone on the Web</span>
+  </li>
+  <li>
+    <strong>Customer</strong>
+    <span> - requires authentication on the Nutanix Portal.</span>
+  </li>
+  <li>
+    <strong>Partner </strong>
+    <span>- can be viewed by customers with Partner status</span>
+  </li>
+  <li>
+    <strong>Internal</strong>
+    <span> - only for Nutanix employees</span>
+  </li>
+</ul>
+<p>
+  <span>How to determine the visibility level of an article?</span>
+</p>
+<ul>
+  <li>
+    <strong>External (Public/Customer/Partner Facing)</strong>
+    <span>: This is the default visibility level and should be used whenever possible. External KBs allow customers to find solutions through search engines and the Nutanix support portal. If the Description section can be shown to customers, the article can be made external.</span>
+  </li>
+</ul>
+<p>
+  <span>Sensitive information should be relocated to the </span>
+  <strong>Internal Comments</strong>
+  <span> field.</span>
+</p>
+<ul>
+  <li>
+    <strong>Public </strong>
+    <span>- all Generic and FAQ type articles, NCC checks, Pre-checks, Pre-Upgrade checks, Alerts. Also, Break-fix type articles that do not describe a fault with Nutanix products. </span>
+  </li>
+  <li>
+    <strong>Customer</strong>
+    <span> - All break-fix type articles that describe issues with Nutanix software or rely on customer-facing (require authentication on the Portal) articles or documents for identification (Field Advisories or Security Advisories)</span>
+  </li>
+  <li>
+    <strong>Partner </strong>
+    <span>- the content is sensitive to a specific OEM, ASP, or partner, and is not appropriate for general customer visibility.</span>
+  </li>
+  <li>
+    <strong>Internal</strong>
+    <span>: Use this setting only when issue identification can only be done exclusively using internal tools, identification requires access to internal-only articles or documents, or must be performed by a Nutanix SRE. See the </span>
+    <em>
+      <span>Tools and components visibility rules</span>
+    </em>
+    <span> section below</span>
+  </li>
+</ul>
+<p>
+  <span>For all internal articles, document the rationale for internal-only status under the “Reason for Internal Only” field. This ensures transparency and aids future reviewers in reevaluating visibility when updating the KB.</span>
+</p>
+<h2>
+  <strong>Tools, sources, and product components visibility rules</strong>
+</h2>
+<p>
+  <span>Use these rules to establish the content's placement in the KB. For example, if the issue verification requires access to curator_cli, the article must be made internal. On the other hand, if the Description section does not rely on internal tools, but the solution or a workaround requires editing gflags, move the solution or the workaround to Internal comments instead and recommend contacting Nutanix Support.</span>
+</p>
+<p>
+  <strong>Internal:</strong>
+</p>
+<ul>
+  <li>
+    <span>Links to other Nutanix internal articles</span>
+  </li>
+  <li>
+    <span>Intranet pages:</span>
+  </li>
+  <ul>
+    <li>
+      <span>*.</span>
+      <a href="http://corp.nutanix.com">
+        <span>corp.nutanix.com</span>
+      </a>
+    </li>
+    <li>
+      <span>*.</span>
+      <a href="http://eng.nutanix.com">
+        <span>eng.nutanix.com</span>
+      </a>
+    </li>
+    <li>
+      <a href="http://nutanix.my.salesforce.com">
+        <span>nutanix.my.salesforce.com</span>
+      </a>
+    </li>
+    <li>
+      <a href="http://confluence.eng.nutanix.com">
+        <span>confluence.eng.nutanix.com</span>
+      </a>
+    </li>
+    <li>
+      <a href="https://jira.nutanix.com/">
+        <span>jira.nutanix.com</span>
+      </a>
+    </li>
+  </ul>
+  <li>
+    <span>File sharing:</span>
+  </li>
+  <ul>
+    <li>
+      <span>Google Drive</span>
+    </li>
+    <li>
+      <span>OneDrive</span>
+    </li>
+    <li>
+      <span>Dropbox</span>
+    </li>
+  </ul>
+  <li>
+    <span>Proprietary information:</span>
+  </li>
+  <ul>
+    <li>
+      <span>Product source code (Sourcegraph outputs, for example)</span>
+    </li>
+    <li>
+      <span>Encryption keys, passwords</span>
+    </li>
+    <li>
+      <span>Extracts from design docs</span>
+    </li>
+  </ul>
+</ul>
+<ul>
+  <li>
+    <span>Internal Support Bulletin (ISB)</span>
+  </li>
+  <li>
+    <span>Sensitive CLI and tools</span>
+  </li>
+  <ul>
+    <li>
+      <span>arithmos_cli</span>
+    </li>
+    <li>
+      <span>cerebro_cli</span>
+    </li>
+    <li>
+      <span>curator_cli</span>
+    </li>
+    <li>
+      <span>edit-aos-gflag</span>
+    </li>
+    <li>
+      <span>edit/create gflag files</span>
+    </li>
+    <li>
+      <span>edit-hades</span>
+    </li>
+    <li>
+      <span>edit_zeus</span>
+    </li>
+    <li>
+      <span>ergon_update_task</span>
+    </li>
+    <li>
+      <span>hyperint_cli</span>
+    </li>
+    <li>
+      <span>idfcli</span>
+    </li>
+    <li>
+      <span>idf_cli.py</span>
+    </li>
+    <li>
+      <span>janus_cli</span>
+    </li>
+    <li>
+      <span>ncli -h true (hidden ncli commands)</span>
+    </li>
+    <li>
+      <span>progress_monitor_cli</span>
+    </li>
+    <li>
+      <a href="http://zkcli.sh">
+        <span>zkcli.sh</span>
+      </a>
+    </li>
+    <li>
+      <span>zkcat</span>
+    </li>
+    <li>
+      <span>zkrm</span>
+    </li>
+    <li>
+      <span>Zkls</span>
+    </li>
+    <li>
+      <span>pithos_cli</span>
+    </li>
+    <li>
+      <span>polaris_cli</span>
+    </li>
+  </ul>
+</ul>
+<p>
+  <strong>Customer:</strong>
+</p>
+<ul>
+  <li>
+    <span>Service pages (stargate/curator, <em>http:localhost:2009</em>). Read-only pages where specific guidance is provided on the usage and interpretation of output</span>
+  </li>
+  <li>
+    <span>Panacea_cli (is read-only)</span>
+  </li>
+  <li>
+    <span>zeus_config_printer</span>
+  </li>
+  <li>
+    <span>nutanix_guest_tools_cli</span>
+  </li>
+</ul>
+<p>
+  <strong>Public:</strong>
+</p>
+<ul>
+  <li>
+    <span>acli</span>
+  </li>
+  <li>
+    <span>ncli</span>
+  </li>
+  <li>
+    <span>nuclei</span>
+  </li>
+  <li>
+    <span>Static URLs to partner or major vendor resources (Microsoft, VMware, Hyper-V), where they directly relate to a Nutanix issue that helps resolve/describe the issue</span>
+  </li>
+  <li>
+    <span>ecli</span>
+  </li>
+  <li>
+    <span>afs</span>
+  </li>
+  <li>
+    <span>ngtcli (guest)</span>
+  </li>
+</ul>
+<h1>
+  <strong>2. Content Requirements</strong>
+</h1>
+<h2>
+  <strong>Clarity &amp; Tone</strong>
+</h2>
+<ul>
+  <li>
+    <span>Use clear, concise, ability-neutral language.</span>
+  </li>
+  <li>
+    <span>Avoid contractions (use “do not” instead of “don’t”).</span>
+  </li>
+  <li>
+    <span>Use the present tense and active voice</span>
+    <span>
+      <br/>
+    </span>
+    <span>Instead of “a reseat can be performed as part of troubleshooting”, say “reseat [the node]”</span>
+    <span>
+      <br/>
+    </span>
+    <span>Instead of “the logs will contain” say “the logs contain [the following error messages]”</span>
+  </li>
+  <li>
+    <span>Avoid jargon, metaphors, and unnecessary words. Examples include:</span>
+  </li>
+  <ul>
+    <li>
+      <span> "IP" – say "IP address" instead</span>
+    </li>
+    <li>
+      <span>"MAC" – say "MAC address" instead</span>
+    </li>
+    <li>
+      <span>Cluster thinks, needs, searches. Define the process or requirements instead.</span>
+    </li>
+    <li>
+      <span>In order to – to [verb]</span>
+    </li>
+    <li>
+      <span>It has been observed that – redundant, explain the issue instead</span>
+    </li>
+  </ul>
+  <li>
+    <span>Avoid all capitals (yelling is rude)</span>
+  </li>
+  <li>
+    <span>Avoid using “please”. The purpose of the KB article is to instruct, not ask.</span>
+  </li>
+  <li>
+    <span>Use the </span>
+    <a href="https://docs.google.com/document/d/1xWHOlmHrAmA-VEl3J-b4Mi8TAsWPj_VDqRrjVJfMu6U/edit?usp=sharing">
+      <span>KB template</span>
+    </a>
+    <span> to help you organise content within the article</span>
+  </li>
+</ul>
+<h2>
+  <strong>Content Tags &amp; Taxonomy</strong>
+</h2>
+<ul>
+  <li>
+    <span>Use accurate and current product names (e.g., “SATADOM”, not “SATA DOM”). Use the </span>
+    <a href="https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Glossary:Nutanix-Glossary">
+      <span>Nutanix Glossary</span>
+    </a>
+    <span> as a reference and standard. For terms not included there, use the vendor's official documentation as a reference.</span>
+  </li>
+  <li>
+    <span>When listing a KB number, use a hyphen "-" between "KB" and the number, for example, KB-1540.</span>
+  </li>
+  <li>
+    <span>Tags must reflect only what is present in the </span>
+    <strong>customer-visible</strong>
+    <span> part of the article.</span>
+  </li>
+</ul>
+<h2>
+  <strong>Strictly Not Allowed</strong>
+</h2>
+<ul>
+  <li>
+    <span>Avoid negative terms like “bug,” “crash,” “panic”, “stuck”. Use “issue”, “failure”, “program halt”, “no progress”, “abort”.</span>
+  </li>
+  <li>
+    <span>Replace non-inclusive terms like “master/slave” with “primary/secondary,” “leader/worker”.</span>
+  </li>
+  <li>
+    <span>No personal identifiable information (PII) such as names (including hosts, VM, servers), email addresses, IP addresses, UUIDs, serial numbers, in text, code blocks, or images, regardless of their source (lab, customer environment, or else). </span>
+    <a href="https://confluence.eng.nutanix.com:8443/display/SW/How+to+redact+sensitive+information+in+images+using+the+MacOS+Preview+app">
+      <span>How to redact sensitive information in images using the MacOS Preview app</span>
+    </a>
+    <span>.</span>
+  </li>
+  <li>
+    <span>No future promises, for example, “will be fixed in AOS 5.1.2”.</span>
+  </li>
+</ul>
+<h1>
+  <strong>3. Style and Formatting</strong>
+</h1>
+<p>
+  <span>Unified style, structure and tone help the reader to understand the content and navigate the article with ease. It also ensures that the article is displayed and translated correctly on the Portal. The accessibility requirements ensure the articles can be efficiently consumed by users with all levels of physical abilities.</span>
+</p>
+<h2>
+  <strong>Headings</strong>
+</h2>
+<ul>
+  <li>
+    <span>Use Heading 4, 5, and 6 (avoid heading 1, 2, and 3)</span>
+  </li>
+  <li>
+    <span>Use descriptive subheadings, for example, </span>
+    <strong>Symptoms</strong>
+    <span>, </span>
+    <strong>Verification</strong>
+    <span>, </span>
+    <strong>Scenario X</strong>
+  </li>
+  <li>
+    <span>Add a Table of Contents for long KBs. </span>
+    <a href="https://confluence.eng.nutanix.com:8443/pages/viewpage.action?pageId=386216005#SalesforceLightningKnowledgeHowTo/FAQ-Howtoaddatableofcontents">
+      <span>How to add a table of contents</span>
+    </a>
+    <span>.</span>
+  </li>
+</ul>
+<h2>
+  <strong>Text</strong>
+</h2>
+<ul>
+  <li>
+    <span>Use default font/size (no colored text, highlighting, or custom styles)</span>
+  </li>
+  <li>
+    <span>Use double quotes (“”) in sentences instead of single quotes.</span>
+  </li>
+</ul>
+<h2>
+  <strong>Commands and Outputs</strong>
+</h2>
+<ul>
+  <li>
+    <span>Format inline commands as Code and </span>
+    <strong>bold</strong>
+  </li>
+  <li>
+    <span>Use code blocks for commands, outputs, and log messages</span>
+  </li>
+  <li>
+    <span>Encase a reference to the error message or a brief excerpt from it used in a sentence in the double quotation “”. For example, “</span>
+    <span>SQL AAG Database Scale Operation randomly fails with error “Not able to discover storage layout”</span>
+    <span>”</span>
+  </li>
+  <li>
+    <span>Include command prompts and explain who runs the command.</span>
+  </li>
+  <li>
+    <span>Command prompt examples:</span>
+  </li>
+</ul>
+<table class="wrapped">
+  <tbody>
+    <tr>
+      <td>
+        <p>
+          <strong>Product</strong>
+        </p>
+      </td>
+      <td>
+        <p>
+          <strong>Command prompt</strong>
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>
+          <span>AOS</span>
+        </p>
+      </td>
+      <td>
+        <p>
+          <span>nutanix@CVM:~$</span>
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>
+          <span>Prism Central</span>
+        </p>
+      </td>
+      <td>
+        <p>
+          <span>nutanix@PCVM:~$</span>
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>
+          <span>AHV</span>
+        </p>
+      </td>
+      <td>
+        <p>
+          <span>root@AHV#</span>
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>
+          <span>ESXi</span>
+        </p>
+      </td>
+      <td>
+        <p>
+          <span>root@ESXi#</span>
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>
+          <span>PowerShell</span>
+        </p>
+      </td>
+      <td>
+        <p>
+          <span>PS C:\&gt;</span>
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>
+          <span>Phoenix</span>
+        </p>
+      </td>
+      <td>
+        <p>
+          <span>phoenix~#</span>
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>
+          <span>Files</span>
+        </p>
+      </td>
+      <td>
+        <p>
+          <span>nutanix@FSVM:~$</span>
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>
+          <span>Witness VM</span>
+        </p>
+      </td>
+      <td>
+        <p>
+          <span>nutanix@WitnessVM:~$</span>
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>
+          <span>Move</span>
+        </p>
+      </td>
+      <td>
+        <p>
+          <span>admin@Move:~$</span>
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>
+          <span>Nutanix Security Central</span>
+        </p>
+      </td>
+      <td>
+        <p>
+          <span>beam@FSCVM:~$</span>
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>
+          <span>Nutanix Database Service</span>
+        </p>
+      </td>
+      <td>
+        <p>
+          <span>era@ERAVM:~$</span>
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>
+          <span>Nutanix Kubernetes Engine</span>
+        </p>
+      </td>
+      <td>
+        <p>
+          <span>[root@karbon-cluster-k8s-master-0 ~]#</span>
+        </p>
+        <p>
+          <span>[root@karbon-cluster-k8s-etcd-0 ~]#</span>
+        </p>
+        <p>
+          <span>[root@karbon-cluster-k8s-worker-0 ~]#</span>
+        </p>
+        <p>
+          <span>[nutanix@karbon-cluster-k8s-master-0 ~]$</span>
+        </p>
+        <p>
+          <span>[nutanix@karbon-cluster-k8s-etcd-0 ~]$</span>
+        </p>
+        <p>
+          <span>[nutanix@karbon-cluster-k8s-worker-0 ~]$</span>
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>
+          <span>Nutanix Objects</span>
+        </p>
+      </td>
+      <td>
+        <p>
+          <span>[nutanix@object-cluster-default-0 ~]$</span>
+        </p>
+        <p>
+          <span>[nutanix@object-cluster-default-1 ~]$</span>
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>
+          <span>Generic Linux VM</span>
+        </p>
+      </td>
+      <td>
+        <p>
+          <span>user@linux:~$</span>
+        </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<h2>
+  <strong>Lists</strong>
+</h2>
+<ul>
+  <li>
+    <span>Use numbered lists for instructions, where execution order matters </span>
+  </li>
+  <li>
+    <span>Use bullet lists for unordered info</span>
+  </li>
+  <li>
+    <span>Use default list formatting, and avoid manual list numbering. </span>
+    <a href="https://confluence.eng.nutanix.com:8443/pages/viewpage.action?pageId=386216005#SalesforceLightningKnowledgeHowTo/FAQ-Howtousebuilt-inlistswithinalist">
+      <span>How to use built-in lists within a list</span>
+    </a>
+    <span>.</span>
+  </li>
+  <li>
+    <span>Do </span>
+    <strong>not</strong>
+    <span> use symbols like *, +, -, # for lists</span>
+  </li>
+</ul>
+<h2>
+  <strong>URLs</strong>
+</h2>
+<ul>
+  <li>
+    <span>Use a dynamic URL to direct to the latest document version (cut the URL before the product version, for example, the URL below will always redirect to the most recent Prism Console Guide </span>
+    <a href="https://portal.nutanix.com/page/documents/details?targetId=Web-Console-Guide-Prism:Web-Console-Guide-Prism">
+      <span>https://portal.nutanix.com/page/documents/details?targetId=Web-Console-Guide-Prism:Web-Console-Guide-Prism</span>
+    </a>
+    <span>)</span>
+  </li>
+  <li>
+    <span>Use descriptive link text, for example, “</span>
+    <a href="http://portal.nutanix.com/kb/KB-4944">
+      <span>KB-4944</span>
+    </a>
+    <span>” instead of “</span>
+    <a href="http://portal.nutanix.com/kb/KB-4944">
+      <span>click here</span>
+    </a>
+    <span>”</span>
+  </li>
+  <li>
+    <span>Customer-visible fields of external articles must link to external resources only</span>
+  </li>
+  <li>
+    <span>Use </span>
+    <a href="https://portal.nutanix.com/kb/1234">
+      <span>https://portal.nutanix.com/kb/</span>
+    </a>
+    <span>[KB number] URL format to link to a KB</span>
+  </li>
+</ul>
+<h2>
+  <strong>Paths</strong>
+</h2>
+<ul>
+  <li>
+    <span>Specify the full path to all log files mentioned</span>
+  </li>
+  <li>
+    <span>Italicise file paths: </span>
+    <em>
+      <span>/home/nutanix/logs/</span>
+    </em>
+  </li>
+  <li>
+    <span>To describe GUI paths: use “&gt;” (for example, Edit &gt; Find &gt; Search the Web)</span>
+  </li>
+</ul>
+<h2>
+  <strong>Images</strong>
+</h2>
+<ul>
+  <li>
+    <p>
+      <span>Upload through Salesforce using the Image &gt; Upload option. Do not copy and paste from Google Docs.</span>
+    </p>
+  </li>
+  <li>
+    <p>
+      <span>Avoid images where possible</span>
+    </p>
+  </li>
+  <li>
+    <p>
+      <span>Avoid third-party screenshots</span>
+    </p>
+  </li>
+  <li>
+    <p>
+      <span>All information in the image must be present in the article as text</span>
+    </p>
+  </li>
+  <li>
+    <p>
+      <span>Blur or redact sensitive data (See </span>
+      <strong>Strictly Not Allowed</strong>
+      <span>).</span>
+    </p>
+  </li>
+  <li>
+    <p>
+      <span>Convert images of CLI outputs and error messages into text (for example, using </span>
+      <a href="https://www.imagetotext.info/">
+        <span>https://www.imagetotext.info/</span>
+      </a>
+      <span>, but redact sensitive information before converting)</span>
+    </p>
+  </li>
+  <li>
+    <p>
+      <span>For images of errors in the GUI, complement the image by adding a text version of the error message formatted as a code block</span>
+    </p>
+  </li>
+</ul>
+<h2>
+  <strong>Accessibility</strong>
+</h2>
+<ul>
+  <li>
+    <span>Use alternative text for images to describe the purpose of including the image. </span>
+    <a href="https://accessibility.huit.harvard.edu/describe-content-images">
+      <span>Tips on writing Alt text from Harvard University</span>
+    </a>
+    <span>. </span>
+    <a href="https://confluence.eng.nutanix.com:8443/pages/viewpage.action?pageId=386216005#SalesforceLightningKnowledgeHowTo/FAQ-Howtoaddanalternative(alt)texttoanimage">
+      <span>How to add an alternative (alt) text to an image in Salesforce editor</span>
+    </a>
+    <span>.</span>
+  </li>
+  <li>
+    <span>Define all acronyms at first use in the format [Full Name (Acronym)], for example, Prism Central VM (PCVM)</span>
+  </li>
+  <li>
+    <span>Use inclusive language ( “select” instead of “click”).</span>
+  </li>
+  <li>
+    <span>Avoid using screenshots for key info when transcribable.</span>
+  </li>
+</ul>
+<h2>
+  <strong>Tables</strong>
+</h2>
+<ul>
+  <li>
+    <span>Avoid nested tables (table within a table)</span>
+  </li>
+  <li>
+    <span>Avoid indenting tables.</span>
+  </li>
+  <li>
+    <span>Do not set table, column, or row width or height (let Portal autosize)</span>
+  </li>
+</ul>
+<h1>
+  <strong>4. Standard Disclaimers</strong>
+</h1>
+<p>
+  <span>Use standard disclaimers to set reader expectations on fix releases in workaround articles, announce third-party limitations, deprecated features, warn about the impact, and so on.</span>
+  <span>
+    <br/>
+  </span>
+  <span>Standard wording for workaround KBs:</span>
+</p>
+<ul>
+  <li>
+    <span>“Nutanix Engineering is aware of the issue and is working on the solution. Contact Nutanix Support for the workaround." - if the workaround cannot be performed by customers</span>
+  </li>
+  <li>
+    <span>"Nutanix Engineering is aware of the issue and is working on the solution.”- if no workaround is available.</span>
+  </li>
+</ul>
+<h1>
+  <strong>5. Jira case linking</strong>
+</h1>
+<p>
+  <span>To learn more about the purpose of the Jira template, refer to </span>
+  <a href="https://confluence.eng.nutanix.com:8443/display/SW/KB+to+JIRA+Association">
+    <span>Confluence: KB to JIRA Association</span>
+  </a>
+  <span>. Jira Template is available for the Break-Fix article type only. Ensure no extra characters are added to the template.</span>
+</p>
+<ac:structured-macro ac:macro-id="7e13e0f3-498f-4c7d-82a2-71a9caf7e55c" ac:name="code" ac:schema-version="1">
+  <ac:plain-text-body><![CDATA[//START//
+JIRA: ###-#####
+Relevancy: <Short reason on JIRA relevance to KB, otherwise put JIRA title>
+Disposition: <Integrated Version(s), otherwise blank>
+Always Link Case: Y/N
+//END//]]></ac:plain-text-body>
+</ac:structured-macro>
+<p>
+  <strong>“Always Link Case” flag</strong>
+</p>
+<p>
+  <span>When set to “Y” (yes), this flag automatically associates the case linked to the article to the Jira case. Use this flag for Jira cases that track the issue covered by the KB article.</span>
+</p>
+<ul>
+  <li>
+    <span>Only one Jira template can be set to “Always Link Case: Y” per article</span>
+  </li>
+  <li>
+    <span>Set “Always Link Case: N” for NCC, Alert, and Precheck KBs.</span>
+  </li>
+  <li>
+    <span>You can link the same Jira in multiple KB articles, but only one article can have the “Always Link Case: Y” flag.</span>
+  </li>
+  <li>
+    <span>Keep the Always Link Case as Y even after the JIRA is resolved and the fix is released to track any recurrences.</span>
+  </li>
+</ul>
+<h1>
+  <strong>6. Other</strong>
+</h1>
+<h2>
+  <strong>Logs required</strong>
+</h2>
+<p>
+  <span>Set to “Yes” if Engineering needs logs; otherwise "No.”</span>
+</p>
+<h2>
+  <strong>Resolved Flag</strong>
+</h2>
+<p>
+  <span>Mark as resolved only when a fix is available and the solution section is updated to reflect that.</span>
+</p>
+<p>
+  <span>Internal Comments</span>
+</p>
+<p>
+  <span>Add the below to the Internal Comments section of articles associated with a Discovery Policy:</span>
+</p>
+<p>
+  <span>THIS KB IS ASSOCIATED WITH A CUSTOMER-FACING INSIGHTS DISCOVERY. DO NOT ARCHIVE WITHOUT CONFIRMATION.</span>
+</p>
+<h2>
+  <strong>Reason for Submission</strong>
+</h2>
+<ul>
+  <li>
+    <span>Always provide a clear summary of changes.</span>
+  </li>
+  <li>
+    <span>Include the SR ticket reference if available.</span>
+  </li>
+</ul>

@@ -1,0 +1,84 @@
+<p>The <strong>Writing Guidelines</strong> on Confluence contains style guidelines followed by the <strong>Nutanix Technical Publications team</strong>.</p>
+<h1>Basic Principles</h1>
+<p>The purpose of all writing is to communicate clearly. These guidelines, and all writing guidelines, are never meant to obstruct clear communication. </p>
+<p>The following subsections capture high-level guidance that applies across all of our technical writing.</p>
+<h2>Use the Simple Present Verb Tense</h2>
+<p>Use simple present tense. <span>In most cases, simple present tense is the correct choice for technical documentation. </span>
+</p>
+<p>
+  <span>Avoid accidentally slipping into future tense; this can happen with contractions like </span>
+  <em>
+    <span>won’t</span>
+  </em>
+  <span>. </span>
+</p>
+<p> 
+  <span>Don't use complex verb tenses, which can be difficult for non-native English speakers to parse and can lead to low-quality translations.</span>
+</p>
+<p>
+  <span>
+    <strong>Exception:</strong> If you're writing about past releases or test results, use the simple past tense.</span>
+</p>
+<h2>Address the Reader Directly</h2>
+<p>Address your writing directly to the reader using the second-person pronoun <em>you</em>.</p>
+<ul>
+  <li>
+    <strong>Wrong:</strong> <em>The end user</em> can customize these settings.</li>
+  <li>
+    <strong>Right:</strong> <em>You </em>can customize these settings. </li>
+</ul>
+<h2>Use the Active Voice</h2>
+<p>Ensure that the subject of your sentence performs the action and doesn't just receive it.</p>
+<ul>
+  <li>
+    <strong>Passive voice: </strong>The component <em>is set back</em> to the supported settings by <em>SCMA</em>.</li>
+  <li>
+    <strong>Active voice: </strong>
+    <em>SCMA resets</em> the component to the supported settings.</li>
+</ul>
+<p>When the subject of the sentence is missing altogether, using the passive voice can create confusion about what component or service is responsible for a product's behavior. Work with your Engineering team if you need help to determine what the subject should be.</p>
+<ul>
+  <li>
+    <strong>Passive voice:</strong> Traffic associated with the VM <em>is monitored</em>.</li>
+  <li>
+    <strong>Active voice:</strong> <em>Flow Network Security monitors</em> the traffic associated with the VM.</li>
+</ul>
+<h1>Additional Resources</h1>
+<p>In addition to these guidelines, other approved resources are:</p>
+<ul>
+  <li>
+    <a href="https://brand.nutanix.com/document/5">Nutanix Brand Guidelines</a>
+  </li>
+  <li>
+    <a href="https://confluence.eng.nutanix.com:8443/display/DPRO/Inclusive+Language">Nutanix Inclusive Language</a>
+  </li>
+  <li>
+    <a href="https://learn.microsoft.com/en-us/style-guide/welcome/">Microsoft Style Guide</a>
+  </li>
+  <li>The Global English Style Guide by John R. Kohl</li>
+  <li>The IBM Style Guide</li>
+  <li>
+    <a href="https://www.chicagomanualofstyle.org/book/ed17/frontmatter/toc.html">The Chicago Manual of Style</a>
+  </li>
+</ul>
+<p>Additional useful resources:</p>
+<ul>
+  <li>
+    <a href="https://confluence.eng.nutanix.com:8443/display/TP/Annotated+Bibliography">Annotated Bibliography</a> </li>
+  <li>
+    <a href="https://nutanixinc.sharepoint.com/:x:/s/content-council/Eagmw2NDoy5DlaDc9Xdqy9cBf7uHRrP1sO36JeHzJO_QuA">Nutanix Glossary</a>
+  </li>
+  <li>
+    <ac:link>
+      <ri:page ri:content-title="Acronyms"/>
+    </ac:link>
+  </li>
+  <li>
+    <ac:link>
+      <ri:page ri:content-title="Considerations Taxonomy"/>
+    </ac:link>
+  </li>
+</ul>
+<p>
+  <br/>
+</p>

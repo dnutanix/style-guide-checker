@@ -1,0 +1,404 @@
+<p>
+  <ac:image ac:align="left" ac:height="250" ac:thumbnail="true">
+    <ri:attachment ri:filename="phoenix_logo.png"/>
+  </ac:image>
+</p>
+<p>
+  <br/>
+</p>
+<p>
+  <br/>
+</p>
+<p>
+  <br/>
+</p>
+<p>
+  <br/>
+</p>
+<p>
+  <br/>
+</p>
+<p>
+  <br/>
+</p>
+<p>
+  <br/>
+</p>
+<p>
+  <br/>
+</p>
+<p>
+  <br/>
+</p>
+<h1>Quick Links</h1>
+<ul>
+  <li>
+    <a href="#Overview">Overview</a>
+  </li>
+  <li>
+    <a href="#Prerequisites">Prerequisites</a>
+  </li>
+  <li>
+    <a href="#Estimated-Time">Estimated Time</a>
+  </li>
+  <li>
+    <a href="#Core-Content">Core Content</a>
+  </li>
+  <li>
+    <a href="#Phoenix-Labs">Phoenix Labs</a>
+  </li>
+  <li>
+    <a href="#Assessments">Assessments</a>
+  </li>
+  <li>
+    <a href="#Resources">Resources</a>
+  </li>
+</ul>
+<h1>Overview</h1>
+<ac:structured-macro ac:macro-id="overview-info" ac:name="info" ac:schema-version="1">
+  <ac:parameter ac:name="title">What is Phoenix?</ac:parameter>
+  <ac:rich-text-body>
+    <p>Phoenix is an ISO-based installer for bare-metal imaging and repair, used when GUI-driven tools are unavailable. It supports installing or repairing the Nutanix Controller VM (CVM), installing/configuring hypervisors, and more. Each Phoenix ISO is based on a specific Foundation version.</p>
+  </ac:rich-text-body>
+</ac:structured-macro>
+<p>The goal of this training is to familiarize SREs with Phoenix, explain its backend operations, and provide case scenarios where the tool is helpful.</p>
+<hr/>
+<ac:structured-macro ac:macro-id="da586265-4547-41b1-9eb6-d0879a59f155" ac:name="panel" ac:schema-version="1">
+  <ac:parameter ac:name="title">Prerequisites</ac:parameter>
+  <ac:rich-text-body>
+    <ul>
+      <li>
+        <ac:link>
+          <ri:page ri:content-title="init.SRE Training Modules (Onboarding)" ri:space-key="SO"/>
+        </ac:link>
+      </li>
+    </ul>
+  </ac:rich-text-body>
+</ac:structured-macro>
+<hr/>
+<ac:structured-macro ac:macro-id="d04e0353-b1e8-4a03-9774-78d2bcc58c8b" ac:name="panel" ac:schema-version="1">
+  <ac:parameter ac:name="title">⏱️ Estimated Time to Complete</ac:parameter>
+  <ac:rich-text-body>
+    <ul>
+      <li>List topic name - x minutes</li>
+      <li>List topic name - x minutes</li>
+      <li>List topic name - x minutes</li>
+    </ul>
+  </ac:rich-text-body>
+</ac:structured-macro>
+<hr/>
+<ac:structured-macro ac:macro-id="7eb8f195-c8a4-4831-a61e-8c80b9da0196" ac:name="panel" ac:schema-version="1">
+  <ac:parameter ac:name="title">Core Content</ac:parameter>
+  <ac:rich-text-body>
+    <ac:structured-macro ac:macro-id="4806c2f3-2717-4ae8-9866-9377bfe52f6c" ac:name="children" ac:schema-version="2"/>
+  </ac:rich-text-body>
+</ac:structured-macro>
+<hr/>
+<h1>Phoenix Labs</h1>
+<ac:structured-macro ac:macro-id="lab1-expand" ac:name="expand" ac:schema-version="1">
+  <ac:parameter ac:name="title">Lab Exercise 1</ac:parameter>
+  <ac:rich-text-body>
+    <ol>
+      <li>
+        <strong>Book a four node cluster</strong> from <a href="http://rx.corp.nutanix.com">rx.corp.nutanix.com</a> (Generation G7 or later).</li>
+      <li>
+        <strong>Image the cluster</strong> with:<ul>
+          <li>AOS 7.3 or higher</li>
+          <li>The matching AHV software (<a href="https://portal.nutanix.com/page/compatibility-interoperability-matrix/platform-compatibility">check compatibility matrix</a>)</li>
+        </ul>
+        <ac:structured-macro ac:macro-id="47b16dec-7942-4362-9292-1b998e329eaa" ac:name="info" ac:schema-version="1">
+          <ac:parameter ac:name="title">Tip</ac:parameter>
+          <ac:rich-text-body>
+            <p>
+              <strong>Include a Windows Guest VM in the deployment.</strong> The Windows VM will be used as a jump box for Phoenix imaging.<br/>Hosting the Phoenix ISO from a jump box in the same geographic area and network segment reduces network latency, which can otherwise cause your imaging process to time-out or take much longer.</p>
+          </ac:rich-text-body>
+        </ac:structured-macro>
+      </li>
+      <li>
+        <strong>Logically remove one node</strong> from the cluster.<br/>(<a href="https://portal.nutanix.com/page/documents/details?targetId=Web-Console-Guide-Prism:wc-removing-node-pc-c.html">See documentation</a>)</li>
+      <li>
+        <strong>Wait for the node to be completely removed.</strong> <br/>(Monitor from Prism)</li>
+      <li>
+        <ac:structured-macro ac:macro-id="84e5fdae-fe4a-4af3-b19a-b0d2949ef187" ac:name="info" ac:schema-version="1">
+          <ac:parameter ac:name="title">Checkpoint</ac:parameter>
+          <ac:rich-text-body>
+            <p>At this point, you should have:</p>
+            <ul>
+              <li>A 4-node cluster (G7+), imaged with AOS 7.3+ and matching AHV</li>
+              <li>One node logically removed and fully out of the cluster</li>
+              <li>A Windows Guest VM available as a jump box</li>
+            </ul>
+            <p>
+              <br/>
+            </p>
+          </ac:rich-text-body>
+        </ac:structured-macro>
+      </li>
+      <li>
+        <strong>Upgrade Foundation</strong> to version 5.9 or later on your cluster using LCM.</li>
+      <li>
+        <strong>Build a Phoenix ISO</strong>:<ul>
+          <li>On a working node, use the <code>generate_iso</code> script</li>
+          <li>Use the same version AOS binary and AHV ISO</li>
+          <li>The ISO should be named similar to <code>phoenix-5.9_AOS-kvm-x86_64.iso</code>
+          </li>
+        </ul>
+      </li>
+    </ol>
+    <ac:structured-macro ac:macro-id="lab1-answer-expand" ac:name="expand" ac:schema-version="1">
+      <ac:parameter ac:name="title">Show Lab 1 Answer</ac:parameter>
+      <ac:rich-text-body>
+        <pre>Find the solution and steps in Chapter 3 - Creating a Phoenix ISO</pre>
+      </ac:rich-text-body>
+    </ac:structured-macro>
+  </ac:rich-text-body>
+</ac:structured-macro>
+<ac:structured-macro ac:macro-id="lab2-expand" ac:name="expand" ac:schema-version="1">
+  <ac:parameter ac:name="title">Lab Exercise 2</ac:parameter>
+  <ac:rich-text-body>
+    <ol>
+      <li>
+        <strong>Generate the Phoenix ISO</strong> with AHV and AOS built in using the script in the CVM (as done in Lab 1).</li>
+      <li>
+        <strong>Configure the network</strong> on the Windows guest VM:<ul>
+          <li>Use one of the available IPs from your RX lab reservation email (see "SECONDARY NETWORK INFORMATION").</li>
+          <li>The goal is for the Guest VM to communicate with IPMI on the node to be reimaged.</li>
+        </ul>
+        <ac:structured-macro ac:macro-id="007f57f7-8579-4ca6-8338-d80f65313143" ac:name="info" ac:schema-version="1">
+          <ac:parameter ac:name="title">Example</ac:parameter>
+          <ac:rich-text-body>
+            <ac:structured-macro ac:macro-id="4b654761-abb7-4ffb-9d02-fa7b07e0fec5" ac:name="code" ac:schema-version="1">
+              <ac:plain-text-body><![CDATA[SECONDARY NETWORK INFORMATION
+
+Secondary VLAN: 0
+Secondary Subnet: 255.255.252.0
+Secondary Gateway: 10.xx.xx.1
+Secondary IP Range: 10.xx.xx.31-10.xx.xx.34]]></ac:plain-text-body>
+            </ac:structured-macro>
+          </ac:rich-text-body>
+        </ac:structured-macro>
+      </li>
+      <li>
+        <strong>Download and install WinSCP</strong> on your Windows jump box VM.<ul>
+          <li>Use WinSCP to connect to the working CVM where you created the Phoenix ISO in the previous lab.</li>
+          <li>Copy the ISO to the Windows jump box VM.</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Connect to the IPMI Web UI</strong> on the node you logically removed in Lab 1:<ul>
+          <li>Use the default browser on the jump box.</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Change the Remote Console configuration</strong> from Java to HTML5.<ul>
+          <li>Open the remote console and mount your Phoenix ISO to the node using the Virtual Media option in the console menu.</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Trigger a power reset</strong> of the node from the IPMI Remote Console.<ul>
+          <li>It should eventually boot into the Phoenix Installer menu.</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Install Phoenix</strong>:<ul>
+          <li>Select <strong>Install CVM (Wipes existing data!) and Install, Configure Hypervisor</strong> in the Phoenix Installer menu.</li>
+          <li>Provide the CVM and Host network settings using the original IPs, netmask, and gateway from your Lab Reservation document.</li>
+        </ul>
+      </li>
+      <li>
+        <strong>After installation finishes</strong>:<ul>
+          <li>When prompted to unplug the ISO and select "Y/N" to reboot, instead hit CTRL+D to drop into the Phoenix shell prompt.</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Configure the network inside Phoenix</strong> to use its local CVM IP address:<ul>
+          <li>Follow <a href="https://nutanix.lightning.force.com/lightning/r/Knowledge_Base__kav/ka0VO000000E4rlYAC/view">KB-5346</a>.</li>
+          <li>If successful, you should be able to SSH into Phoenix from a working CVM using credentials "root" and "nutanix/4u".</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Copy logs out of Phoenix</strong> to the ~/tmp directory on a working CVM using <code>scp</code>:<ul>
+          <li>/tmp/phoenix.log</li>
+          <li>/phoenix/installer.log</li>
+          <li>/tmp/dmesg_out</li>
+        </ul>
+        <ac:structured-macro ac:macro-id="fbfee6d4-386b-4597-a453-aca681787066" ac:name="info" ac:schema-version="1">
+          <ac:parameter ac:name="title">Tip</ac:parameter>
+          <ac:rich-text-body>
+            <p>Create a new dmesg.out file with the latest dmesg log entries before copying:</p>
+            <ac:structured-macro ac:macro-id="70666a3b-9c49-45ae-9821-c44c1b9662d5" ac:name="code" ac:schema-version="1">
+              <ac:plain-text-body><![CDATA[phoenix ~ # dmesg > dmesg.out
+phoenix ~ # ls -l dmesg.out
+-rw-r--r-- 1 root root 77502 Apr 17 18:10 dmesg.out]]></ac:plain-text-body>
+            </ac:structured-macro>
+          </ac:rich-text-body>
+        </ac:structured-macro>
+      </li>
+      <li>
+        <strong>Unplug your Phoenix ISO</strong> from the IPMI Remote Console using the Virtual Media option.<ul>
+          <li>Perform a power reset of the host from the Remote Console.</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Review the logs</strong> you gathered from Phoenix on the CVM where you copied them.<ul>
+          <li>Examine <code>phoenix.log</code> (Phoenix bring-up process) and <code>installer.log</code> (imaging process details).</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Modify the hostnames</strong> of the CVM and AHV host so they match the syntax of the other nodes in the cluster.<ul>
+          <li>See <a href="https://nutanix.lightning.force.com/lightning/r/Knowledge_Base__kav/ka0VO000000D4qbYAC/view">KB-3517</a> and <a href="https://nutanix.lightning.force.com/lightning/r/Knowledge_Base__kav/ka0VO000000GCzhYAG/view">KB-2925</a>.</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Use the Expand Cluster option</strong> to add the 4th node back into the cluster.<ul>
+          <li>See <a href="https://portal.nutanix.com/page/documents/details?targetId=Web-Console-Guide-Prism-v7_3:wc-cluster-expand-wc-t.html">Expand Cluster Documentation</a>.</li>
+        </ul>
+      </li>
+    </ol>
+    <ac:structured-macro ac:macro-id="lab2-answer-expand" ac:name="expand" ac:schema-version="1">
+      <ac:parameter ac:name="title">Show Lab 2 Answer</ac:parameter>
+      <ac:rich-text-body>
+        <pre>Find the solution and steps in Chapter 4 - Phoenix: Running the Installer &amp; Chapter 5 - Phoenix: Install CVM
+
+How to Modify the Hostname of the Controller VM?
+KB-3517
+https://nutanix.lightning.force.com/lightning/r/Knowledge_Base__kav/ka0VO000000D4qbYAC/view
+
+How to rename AHV (Acropolis) hosts
+KB-2925
+https://nutanix.lightning.force.com/lightning/r/Knowledge_Base__kav/ka0VO000000GCzhYAG/view
+
+Expand Cluster - https://portal.nutanix.com/page/documents/details?targetId=Web-Console-Guide-Prism-v7_3:wc-cluster-expand-wc-t.html</pre>
+      </ac:rich-text-body>
+    </ac:structured-macro>
+  </ac:rich-text-body>
+</ac:structured-macro>
+<ac:structured-macro ac:macro-id="lab3-expand" ac:name="expand" ac:schema-version="1">
+  <ac:parameter ac:name="title">Lab Exercise 3</ac:parameter>
+  <ac:rich-text-body>
+    <ac:structured-macro ac:macro-id="871d58f9-0925-400f-803f-0bf82800acaa" ac:name="warning" ac:schema-version="1">
+      <ac:parameter ac:name="title">Warning</ac:parameter>
+      <ac:rich-text-body>
+        <p>Step 2 below should NEVER be performed on a production cluster, it will break the CVM.</p>
+      </ac:rich-text-body>
+    </ac:structured-macro>
+    <ol>
+      <li>
+        <strong>Login to any working CVM</strong> and run the following command from the root directory:<ul>
+          <li>
+            <code>sudo rm -rf /boot/*</code>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <strong>Reboot the CVM.</strong>
+        <ul>
+          <li>The CVM will not boot, because all files in the boot partition were deleted.</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Create an svmrescue.iso</strong> from a working CVM.<ul>
+          <li>Follow the documentation step labeled "Optional - Configure networking" so you can SSH into the rescue shell later.</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Copy svmrescue.iso</strong> to the AHV host with the faulty CVM.<ul>
+          <li>Use the same directory where the CVM usually stores its svmboot.iso.</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Shut down the faulty CVM</strong> and configure it to boot from the rescue ISO.<ul>
+          <li>Power on the CVM from the AHV command line.</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Wait 5 minutes</strong> for the CVM to boot.<ul>
+          <li>SSH into it from the AHV host using <code>192.168.5.1</code> with credentials "root" and "nutanix/4u".</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Modify your Putty session configuration</strong> to log all printable output to a file on your desktop.<ul>
+          <li>This ensures you have a log of the on-screen output of the CVM rescue process, crucial for root cause analysis if there is a failure.</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Recreate the CVM</strong> from the rescue shell.</li>
+      <li>
+        <strong>After the rescue operation</strong>:<ul>
+          <li>Disable Putty session logging.</li>
+          <li>Check the log file on your desktop to ensure all output was recorded.</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Power down the CVM</strong> from the AHV command line using <code>virsh</code>.</li>
+      <li>
+        <strong>Replace the CVM's current boot iso</strong> with the original copy.<ul>
+          <li>Delete the svmrescue.iso off the hypervisor.</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Power the CVM</strong> and run the <code>boot_disk_replace</code> script from a working CVM, pointing the script to the IP address of the faulty CVM.<ul>
+          <li>This will restore the original configuration of the rescued CVM.</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Once the script is finished</strong>:<ul>
+          <li>The CVM recovery should be complete and it should appear normal in "cs" output and in NCC health checks.</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Review the <code>boot_disk_replace.log</code> file</strong> (should be present on one of the CVMs).<ul>
+          <li>Note which configuration files were copied to the recreated CVM.</li>
+        </ul>
+      </li>
+    </ol>
+    <ac:structured-macro ac:macro-id="lab3-answer-expand" ac:name="expand" ac:schema-version="1">
+      <ac:parameter ac:name="title">Show Lab 3 Answer</ac:parameter>
+      <ac:rich-text-body>
+        <pre>Find the solution and steps in Chapter 5, Part D: Manual svmrescue</pre>
+      </ac:rich-text-body>
+    </ac:structured-macro>
+  </ac:rich-text-body>
+</ac:structured-macro>
+<hr/>
+<ac:structured-macro ac:macro-id="assess-expand" ac:name="expand" ac:schema-version="1">
+  <ac:parameter ac:name="title">Assessments</ac:parameter>
+  <ac:rich-text-body>
+    <ac:structured-macro ac:macro-id="assessment-info" ac:name="info" ac:schema-version="1">
+      <ac:parameter ac:name="title">Assessment Instructions</ac:parameter>
+      <ac:rich-text-body>
+        <p>This training is completed once the post assessment has been passed. The assessment is a part of the course available in Nutanix University. Access the course in Nutanix University <span style="color: rgb(255,0,0);">
+            <a href="https://learningacademy.nutanix.com/course?course_id=68823d09a3ddfef44ca78891">
+              <strong>here</strong>
+            </a> </span> <span style="color: rgb(0,0,255);"> <strong>.</strong> </span> If you do not pass the assessment after your fourth (4th) attempt, please reach out to your local support trainer.</p>
+        <p>NOTE: If you get a 404 page upon loading up the link, please make sure you have logged in to NU and then click the link. Alternatively after logging to NU search for the course.</p>
+      </ac:rich-text-body>
+    </ac:structured-macro>
+  </ac:rich-text-body>
+</ac:structured-macro>
+<hr/>
+<ac:structured-macro ac:macro-id="resources-expand" ac:name="expand" ac:schema-version="1">
+  <ac:parameter ac:name="title">Resources &amp; Useful Links</ac:parameter>
+  <ac:rich-text-body>
+    <ul>
+      <li>Useful Slack Channel: <strong>#tc_core</strong>
+      </li>
+      <li>
+        <a href="https://nutanix.lightning.force.com/lightning/r/Knowledge_Base__kav/ka0VO000000D4qbYAC/view">KB-3517: Modify the Hostname of the Controller VM</a>
+      </li>
+      <li>
+        <a href="https://nutanix.lightning.force.com/lightning/r/Knowledge_Base__kav/ka0VO000000GCzhYAG/view">KB-2925: Rename AHV (Acropolis) hosts</a>
+      </li>
+      <li>
+        <a href="https://portal.nutanix.com/page/documents/details?targetId=Web-Console-Guide-Prism-v7_3:wc-cluster-expand-wc-t.html">Expand Cluster Documentation</a>
+      </li>
+    </ul>
+  </ac:rich-text-body>
+</ac:structured-macro>
+<hr/>
+<p>
+  <ac:structured-macro ac:macro-id="2ff96d9d-dca9-4448-80d4-9a3bc3181f27" ac:name="macrosuite-button" ac:schema-version="1">
+    <ac:parameter ac:name="macroId">rC5a5Lc8KpDDv5TXp4bt-</ac:parameter>
+    <ac:parameter ac:name="data">JTdCJTIyYnV0dG9uVHlwZSUyMiUzQSUyMmljb25fcmlnaHQlMjIlMkMlMjJidXR0b25TaXplJTIyJTNBJTIybGFyZ2UlMjIlMkMlMjJidXR0b25UZXh0JTIyJTNBJTIyUHJvY2VlZCUyMHRvJTIwQ2hhcHRlciUyMDIlM0ElMjBUaGUlMjBCYXNpY3MlMjBvZiUyMFBob2VuaXglMjIlMkMlMjJidXR0b25SYWRpdXMlMjIlM0ExJTJDJTIyYnV0dG9uV2lkdGglMjIlM0EyMCUyQyUyMmJ1dHRvbkNvbG9yJTIyJTNBJTIyJTIzMDAwMDAwMDAlMjIlMkMlMjJidXR0b25Gb250Q29sb3IlMjIlM0ElMjIlMjMwMDY1ZmZmZiUyMiUyQyUyMmJ1dHRvbkJvcmRlckNvbG9yJTIyJTNBJTIyJTIzMDAwMDAwMDAlMjIlMkMlMjJidXR0b25MaW5rJTIyJTNBJTIyJTdCJTVDJTIyaWQlNUMlMjIlM0ElNUMlMjI0MzEzMjgyNTMlNUMlMjIlMkMlNUMlMjJsaW5rJTVDJTIyJTNBJTVDJTIyJTJGeCUyRi1ZdTFHUSU1QyUyMiUyQyU1QyUyMnRpdGxlJTVDJTIyJTNBJTVDJTIyRFJBRlQlMjAtJTIwQmFzaWNzJTIwb2YlMjBQaG9lbml4JTVDJTIyJTJDJTVDJTIydHlwZSU1QyUyMiUzQSU1QyUyMnBhZ2UlNUMlMjIlMkMlNUMlMjJzb3VyY2UlNUMlMjIlM0ElNUMlMjJwYWdlJTVDJTIyJTdEJTIyJTJDJTIyYnV0dG9uTmV3VGFiJTIyJTNBJTIyZmFsc2UlMjIlMkMlMjJidXR0b25OZXdMaW5rJTIyJTNBJTIyJTIyJTJDJTIyYnV0dG9uSWNvbiUyMiUzQSUyMmJvb3RzdHJhcCUyRkFycm93UmlnaHRDaXJjbGUlMjIlMkMlMjJidXR0b25Ib3ZlckNvbG9yJTIyJTNBJTIydHJhbnNwYXJlbnQlMjIlMkMlMjJidXR0b25Cb3JkZXJIb3ZlckNvbG9yJTIyJTNBJTIyJTIzMDAwMDAwMDAlMjIlMkMlMjJidXR0b25Gb250SG92ZXJDb2xvciUyMiUzQSUyMiUyMzAwMDAwMDAwJTIyJTJDJTIyYnV0dG9uSWNvbkhvdmVyQ29sb3IlMjIlM0ElMjIlMjMwMDAwMDAwMCUyMiUyQyUyMmlzQnV0dG9uU2hhZG93T24lMjIlM0F0cnVlJTJDJTIyYnV0dG9uSWNvbkNvbG9yJTIyJTNBJTIyJTIzMDA2NWZmZmYlMjIlMkMlMjJidXR0b25XaWR0aERldGVjdGlvbiUyMiUzQTYwJTJDJTIyZW1vamlFbmFibGVkJTIyJTNBZmFsc2UlMkMlMjJlbW9qaSUyMiUzQSUyMiU3QiU3RCUyMiU3RA==</ac:parameter>
+  </ac:structured-macro>
+</p>

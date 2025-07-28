@@ -1,0 +1,330 @@
+<ac:layout>
+  <ac:layout-section ac:type="single">
+    <ac:layout-cell>
+      <h1>Overview</h1>
+      <p>This chapter walks you through the Phoenix installer interface step-by-step. You'll learn how to navigate through the different phases of the Phoenix boot process, understand what each option means, and monitor the installation progress.</p>
+      <ac:structured-macro ac:macro-id="chapter-overview" ac:name="info" ac:schema-version="1">
+        <ac:parameter ac:name="title">What You Will Learn</ac:parameter>
+        <ac:rich-text-body>
+          <p>By the end of this chapter, you will be able to:</p>
+          <ul>
+            <li>
+              <strong>Navigate the Phoenix boot process</strong> - Understand each phase from initial boot to completion</li>
+            <li>
+              <strong>Interpret the installer menu</strong> - Know what each option means and when to use it</li>
+            <li>
+              <strong>Monitor installation progress</strong> - Track the status of your selected actions</li>
+            <li>
+              <strong>Handle common scenarios</strong> - Know what to do when things don't go as expected</li>
+          </ul>
+        </ac:rich-text-body>
+      </ac:structured-macro>
+      <ac:structured-macro ac:macro-id="expand-phase1" ac:name="expand" ac:schema-version="1">
+        <ac:parameter ac:name="title">Phase 1: Initial Grub Menu</ac:parameter>
+        <ac:rich-text-body>
+          <p>When Phoenix begins to boot, you will first encounter a black "Nutanix Installer" menu screen. This is the initial GRUB bootloader interface that appears briefly during the boot process.</p>
+          <p>
+            <strong>Important:</strong> No action is required on this screen. The menu will automatically timeout within 5 seconds and proceed to the main Nutanix Installer interface, which displays with a grey background and provides the actual Phoenix functionality.</p>
+          <p>
+            <ac:image ac:width="900">
+              <ri:attachment ri:filename="image-2025-7-9_17-56-38.png"/>
+            </ac:image>
+          </p>
+          <h3>Understanding the Boot Options</h3>
+          <p>The initial GRUB menu may display additional boot options that are important to understand:</p>
+          <ul>
+            <li>
+              <strong>RescueShell mode</strong> - A command-line interface based on Rocky Linux designed for troubleshooting and diagnostic purposes. You can access this shell later in the boot process by selecting "Cancel" from the main Installer menu. Phoenix will also automatically redirect you to RescueShell if it encounters a FATAL error during installation or while booting into the main Nutanix Installer interface.</li>
+            <li>
+              <strong>NDPRescueShell mode</strong> - A specialized rescue environment used exclusively by Prism Host Bootdisk Repair workflows (both Graceful and Failed scenarios). This option should not be selected manually during standard Phoenix operations. The screenshot is provided for reference to help you recognize this interface if encountered during Host Bootdisk Repair procedures. For troubleshooting Host Bootdisk Repair issues, refer to <a class="external-link" href="http://portal.nutanix.com/kb/5013/">KB-5013</a>.</li>
+          </ul>
+        </ac:rich-text-body>
+      </ac:structured-macro>
+      <ac:structured-macro ac:macro-id="expand-phase2" ac:name="expand" ac:schema-version="1">
+        <ac:parameter ac:name="title">Phase 2: Platform and Software Detection</ac:parameter>
+        <ac:rich-text-body>
+          <p>Once Phoenix has successfully extracted its required files from the ISO into the host's memory, it begins an automated detection process. During this phase, Phoenix scans and analyzes the hardware platform configuration as well as the software installed on the system's storage devices.</p>
+          <p>Specifically, Phoenix examines:</p>
+          <ul>
+            <li>
+              <strong>Hardware Platform:</strong> System architecture and component configuration</li>
+            <li>
+              <strong>CVM Storage:</strong> Software installed on NVMe/SSD boot drives for the Controller Virtual Machine</li>
+            <li>
+              <strong>Hypervisor Storage:</strong> Software installed on M.2 boot devices for the hypervisor</li>
+          </ul>
+          <p>
+            <ac:image ac:width="900">
+              <ri:attachment ri:filename="image-2025-7-13_16-43-57.png"/>
+            </ac:image>
+          </p>
+          <p>This detection process is critical as it determines what installation options Phoenix will present in the main Installer menu and whether the current Phoenix image is compatible with the target system.</p>
+          <h3>Common Detection Issues and Solutions</h3>
+          <p>When using <a class="external-link" href="https://portal.nutanix.com/page/downloads?product=phoenix">Portal Phoenix</a> (a vanilla Phoenix ISO downloaded from the Nutanix Portal), you may encounter detection failures if Phoenix cannot identify the expected software on the storage devices or if the hypervisor is already properly configured.</p>
+          <p>In such cases, you will see FATAL error messages similar to those shown in the examples below, and Phoenix will automatically redirect you to the Rescue Shell.</p>
+          <ac:structured-macro ac:macro-id="9687cb0d-0ad1-402f-a0f3-ea43141f20b0" ac:name="noformat" ac:schema-version="1">
+            <ac:plain-text-body><![CDATA[FATAL gui_actions.py:95 Couldn't find a hypervisor packaged with phoenix. No, hypervisor detected on the system. Please, either install hypervisor manually or package it with phoenix. Please refer to Nutanix support portal for more information on this.]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <p>
+            <ac:image ac:width="900">
+              <ri:attachment ri:filename="image-2025-7-13_17-41-32.png"/>
+            </ac:image>
+          </p>
+          <ac:structured-macro ac:macro-id="eff95057-601f-4eb1-b146-87c816bde7cc" ac:name="noformat" ac:schema-version="1">
+            <ac:plain-text-body><![CDATA[FATAL gui_actions.py:119 Hypervisor and AOS are already installed. Nothing to do. If you are trying to attempt a new installation please, package a hypervisor and/or a AOS with phoenix. Please refer to Nutanix support portal for more information on this.]]></ac:plain-text-body>
+          </ac:structured-macro>
+          <p>
+            <br/>
+          </p>
+          <p>
+            <ac:image ac:width="900">
+              <ri:attachment ri:filename="image-2025-7-9_18-0-45.png"/>
+            </ac:image>
+          </p>
+          <h3>Resolving Detection Failures</h3>
+          <p>Detection failures typically occur due to one of the following reasons:</p>
+          <ul>
+            <li>
+              <strong>Missing Software Components:</strong> The Phoenix image does not contain the required AOS or hypervisor binaries. This can often be resolved by creating a custom Phoenix ISO that includes the necessary software components.</li>
+            <li>
+              <strong>Version Incompatibility:</strong> There is an incompatibility between the Foundation version used to generate the Phoenix image and the combination of hardware model, AOS version, or hypervisor version. Consult the release notes for your specific software and hardware to determine the minimum required Foundation version.</li>
+          </ul>
+          <ac:structured-macro ac:macro-id="a25c448f-f556-4fba-b4f2-bb758784855b" ac:name="tip" ac:schema-version="1">
+            <ac:parameter ac:name="title">Compatibility Best Practice</ac:parameter>
+            <ac:rich-text-body>Ensure that the Foundation software version on the cluster where you create the Phoenix image is newer than the AOS or hypervisor software versions you plan to install. This ensures that Phoenix has the necessary knowledge to properly install your target software versions.</ac:rich-text-body>
+          </ac:structured-macro>
+          <ac:structured-macro ac:macro-id="e5415a60-4a47-4225-ba2d-affd29e7f1f8" ac:name="tip" ac:schema-version="1">
+            <ac:parameter ac:name="title">Manual Menu Access</ac:parameter>
+            <ac:rich-text-body>If you find yourself at the Rescue Shell prompt and want to return to the main Installer Menu, execute the following command:<span> <strong>/phoenix/phoenix</strong> </span>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+        </ac:rich-text-body>
+      </ac:structured-macro>
+      <ac:structured-macro ac:macro-id="expand-phase3" ac:name="expand" ac:schema-version="1">
+        <ac:parameter ac:name="title">Phase 3: The Nutanix Installer Menu - Choosing the Action</ac:parameter>
+        <ac:rich-text-body>
+          <p>After successful platform and software detection, Phoenix presents the main Nutanix Installer interface. This is the primary control center where you select the specific actions you want Phoenix to perform on the target system.</p>
+          <ac:structured-macro ac:macro-id="93410ab9-bbf5-4855-8f5d-e4cd9e079f31" ac:name="warning" ac:schema-version="1">
+            <ac:parameter ac:name="title">Critical Safety Warning</ac:parameter>
+            <ac:rich-text-body>
+              <p>
+                <strong>Data Loss Risk:</strong> Never select the "Install Cvm (Wipes existing data!)" action unless you are performing a new installation or have completely and logically removed the node from Prism in advance (using the Hardware Diagram "Remove Node" option).</p>
+              <p>If you must reimage a node that is part of a 3-node cluster, you must first logically remove all disks associated with the node using the command: <code>ncli disk rm-start id=&lt;disk_id_from_ncli_disk_list&gt; force=true</code>
+              </p>
+              <p>
+                <strong>Important:</strong> These disk and node removal tasks must be 100% complete before proceeding with the installation action. Failure to do so may result in permanent loss of customer data.</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <p>
+            <ac:image ac:width="900">
+              <ri:attachment ri:filename="image-2025-7-6_20-13-33.png"/>
+            </ac:image>
+          </p>
+          <ac:structured-macro ac:macro-id="5f472f7a-248f-4a6f-905c-1a0344df71bf" ac:name="info" ac:schema-version="1">
+            <ac:parameter ac:name="title">Parameter Verification</ac:parameter>
+            <ac:rich-text-body>
+              <p>While Phoenix automatically detects most parameters, the software is not infallible. If you have a Systems Engineer or customer representative on-site, it is recommended to have them verify the accuracy of the displayed information.</p>
+              <p>You have the ability to manually update the "Block ID", "Node Serial", and "Node Cluster ID" fields directly from this menu if necessary.</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <h3>Menu Field Descriptions</h3>
+          <p>The Phoenix Installer menu displays several key parameters that you should understand before proceeding:</p>
+          <ul>
+            <li>
+              <strong>Version: phoenix-X.X</strong> - Indicates the Phoenix version number, which corresponds to the Foundation version used to create the image. Phoenix version equals Foundation version.</li>
+            <li>
+              <strong>Installed Hypervisor</strong> - Shows the currently installed hypervisor type and version on the system.</li>
+            <li>
+              <strong>AOS</strong> - Displays the currently installed version of the Acropolis Operating System.</li>
+            <li>
+              <strong>Node Model</strong> - Identifies the hardware platform and model of the target system.</li>
+            <li>
+              <strong>Node Position</strong> - Indicates the slot position in the chassis (A, B, C, or D). Note: Single-node chassis (1U1N, 2U1N) always display Node Position "A".</li>
+            <li>
+              <strong>Block ID</strong> - The chassis or block serial number, which corresponds to the asset identification used in Salesforce.</li>
+            <li>
+              <strong>Node Serial</strong> - The specific serial number of the node you are working with.</li>
+            <li>
+              <strong>Node Cluster ID</strong> - A cluster identification number assigned for imaging purposes. If adding this node to an existing cluster, this ID will be automatically updated by the Cluster Expand/Create workflow.</li>
+            <li>
+              <strong>Choose action</strong> - Use the left and right arrow keys to navigate through available installation options. If a desired action is not available, it typically indicates that the Phoenix image was not created with the correct AOS or hypervisor binaries.</li>
+            <li>
+              <strong>Choose hypervisor</strong> - Select the hypervisor type and version that was included when creating the Phoenix ISO.</li>
+            <li>
+              <strong>Choose AOS</strong> - Select the AOS version that was included when creating the Phoenix ISO. If no AOS was included, you will see either "None Required" or the currently installed AOS version with "(Installed AOS)" notation.</li>
+          </ul>
+          <h3>Available Installation Actions</h3>
+          <p>Phoenix provides several installation and configuration options depending on your specific requirements:</p>
+          <ul>
+            <li>
+              <strong>Install Cvm (Wipes existing data!) and Install, Configure Hypervisor</strong> - Complete system installation including both CVM and hypervisor components.</li>
+            <li>
+              <strong>Install, Configure Hypervisor*</strong> - Install and configure only the hypervisor component.</li>
+            <li>
+              <strong>Configure Installed Hypervisor<sup>1</sup> </strong> - Configure an already installed hypervisor to work with Nutanix.</li>
+            <li>
+              <strong>Repair Cvm (Preserves data!)<sup>2</sup> </strong> - Repair the CVM while preserving existing data.</li>
+            <li>
+              <strong>Repair Cvm (Preserves data!) and Install, Configure Hypervisor<sup>2</sup> </strong> - Repair CVM and install/configure hypervisor while preserving data.</li>
+            <li>
+              <strong>Install Cvm (Wipes existing data!)</strong> - Install only the CVM component, wiping existing data.</li>
+          </ul>
+          <p>
+            <strong>Note:</strong> Pressing CTRL+C or selecting the "Cancel" option will always redirect you to the Rescue Shell.</p>
+          <p>
+            <em>* The "Install, Configure Hypervisor" option may not be available when running Phoenix with AOS and AHV on Software Only platforms.</em>
+          </p>
+          <ac:structured-macro ac:macro-id="expand-configure-hypervisor" ac:name="expand" ac:schema-version="1">
+            <ac:parameter ac:name="title">Important Considerations: Configure Installed Hypervisor</ac:parameter>
+            <ac:rich-text-body>
+              <h4>
+                <sup>1</sup> Important considerations before selecting "Configure Installed Hypervisor" action with Portal Phoenix</h4>
+              <ul>
+                <li style="list-style-type: disc;">
+                  <p>Unless your customer is using one of the<span> <a class="external-link" href="https://portal.nutanix.com/page/documents/kbs/details?targetId=kA00e000000XelkCAC#unsupported_config">unsupported configurations noted in KB-5013</a>, avoid using Phoenix to recover from M.2 host bootdisk failures and instead use the features available in Prism which are documented in the<span> <a class="external-link" href="https://portal.nutanix.com/#/page/docs/list?type=hardware">Hardware Replacement Documentation</a> <span>on the Nutanix Portal.<span> <a class="external-link" href="http://portal.nutanix.com/kb/5013">KB-5013</a> <span>is available to help you troubleshoot these features.</span>
+                          </span>
+                        </span>
+                      </span>
+                    </span>
+                  </p>
+                </li>
+                <li style="list-style-type: disc;">
+                  <p>Consult the<span> <a class="external-link" href="https://portal.nutanix.com/page/documents/list?type=software&amp;filterKey=software&amp;filterVal=Foundation">Field Installation Guide</a> <span>to ensure that you have taken the proper steps when installing the hypervisor manually. Note that there may be unique requirements for OEM and Software-Only platforms, so please<span> <a class="external-link" href="https://portal.nutanix.com/page/documents/list?type=compatibilityList">consult the installation guides for those as well</a>. </span>
+                      </span>
+                    </span>
+                  </p>
+                </li>
+                <li style="list-style-type: disc;">
+                  <p>Make sure to leave the default <ac:inline-comment-marker ac:ref="f0436c49-af3c-4861-a609-7464eab3dacd">user credentials</ac:inline-comment-marker> on the hypervisor (root/administrator) as "nutanix/4u" until imaging is completed and the node is part of its intended cluster.</p>
+                </li>
+                <li style="list-style-type: disc;">
+                  <p>Do not perform any network or <ac:inline-comment-marker ac:ref="1c8aac0c-6030-4104-b6fe-32870e6b0779">other configuration activities</ac:inline-comment-marker> between hypervisor imaging and "Configure Hypervisor" with Phoenix.</p>
+                  <ul>
+                    <li>All post-deployment activities, such as adding the node to vCenter or similar integrations, must be deferred until the 'Configure Hypervisor' step has been successfully completed.</li>
+                  </ul>
+                </li>
+                <li style="list-style-type: disc;">
+                  <p>Never perform Phoenix "Configure Hypervisor" multiple times. In case of failure,<span> <a href="https://confluence.eng.nutanix.com:8443/display/STK/Phoenix%3A+Configure+Hypervisor">review firstboot.out for the cause and then re-run firstboot scripts once the root issue is resolved</a>. If you need to perform the "Configure Installed Hypervisor" action all over again, reinstall the hypervisor first.</span>
+                  </p>
+                </li>
+              </ul>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <ac:structured-macro ac:macro-id="expand-repair-cvm" ac:name="expand" ac:schema-version="1">
+            <ac:parameter ac:name="title">Important Considerations: Repair CVM</ac:parameter>
+            <ac:rich-text-body>
+              <h4>
+                <sup>2 </sup>Important considerations before selecting "Repair Cvm" action with Phoenix</h4>
+              <ul>
+                <li>
+                  <p>This action is identical to the "Rescue" option visible when booting a CVM into an svmrescue.iso. Read an overview of this function and all the associated warnings<span> <a href="https://confluence.eng.nutanix.com:8443/display/STK/SVM+Rescue%3A+Re-Creating+a+CVM">HERE</a> <span>before proceeding.</span>
+                    </span>
+                  </p>
+                </li>
+                <li>
+                  <p>Never permit a customer, partner, or SE to take this action without direct assistance from Nutanix Support.</p>
+                </li>
+                <li>
+                  <p>Do not perform Repair CVM if the cluster is undergoing an AOS upgrade without first consulting a member of the DevEx Team.</p>
+                </li>
+                <li>Do not perform Repair CVM if you are recovering from a M.2 hypervisor boot device failure. The "Configure Hypervisor" is sufficient for configuring a freshly installed hypervisor to work with an existing CVM. If the Phoenix menu doesn't load or fails to present this option by itself (or "Install, Configure Hypervisor", in cases where hypervisor ISO was provided when creating Phoenix) then refer to<span> <a class="external-link" href="http://portal.nutanix.com/kb/9010">KB-9110</a>. This article details a known issue in AOS versions 6.5.x and earlier that is tracked by <a class="external-link" href="https://jira.nutanix.com/browse/ENG-186570">ENG-186570</a>. </span>
+                </li>
+                <li>
+                  <strong> <span style="color: rgb(255,0,0);">Do NOT perform Repair CVM on Single-Node Clusters. Doing so will result in full loss of user data.</span> </strong>
+                </li>
+              </ul>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <p class="p1">
+            <strong>The following screen is displayed when "Install CVM" is selected as one of the actions during the Phoenix installation process:</strong>
+          </p>
+          <p>
+            <ac:image ac:width="900">
+              <ri:attachment ri:filename="image-2025-7-9_18-3-51.png"/>
+            </ac:image>
+          </p>
+          <p>Once you have confirmed that the information and selected actions in the Nutanix Installer menus are correct, toggle the red-colored field so that "Start" is highlighted and then press the Return key to initiate the action.</p>
+        </ac:rich-text-body>
+      </ac:structured-macro>
+      <ac:structured-macro ac:macro-id="expand-phase4" ac:name="expand" ac:schema-version="1">
+        <ac:parameter ac:name="title">Phase 4: Monitoring the Phoenix Action</ac:parameter>
+        <ac:rich-text-body>
+          <p>After initiating your selected action, Phoenix provides comprehensive real-time monitoring capabilities through the console interface. This phase is critical for tracking progress, identifying potential issues, and ensuring successful completion of the installation or configuration process.</p>
+          <ac:structured-macro ac:macro-id="c518b77a-be30-4318-ad17-589a2b21f1aa" ac:name="tip" ac:schema-version="1">
+            <ac:parameter ac:name="title">Parallel Processing Considerations</ac:parameter>
+            <ac:rich-text-body>
+              <p>
+                <strong>Parallel Execution:</strong> When you select multiple actions in Phoenix (such as "Install CVM &amp; Install Hypervisor"), these operations execute in parallel. If one process encounters a failure, the other may continue running even after a FATAL error appears on-screen and redirects you to the Phoenix Shell.</p>
+              <p>
+                <strong>Important:</strong> Do not reboot the host while parallel processes are still running. The installation progress will continue to display on the console screen and can be monitored in the <code>/phoenix/installer.log</code> file.</p>
+              <p>
+                <a href="https://confluence.eng.nutanix.com:8443/display/STK/Example+of+Phoenix+Installer.log+from+Complete+Node+Imaging">
+                  <strong>Click Here</strong>
+                </a> to see an example of the installer.log file from a complete AOS+AHV imaging process using Phoenix.</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+          <h3>Understanding the Progress Display</h3>
+          <p>The Phoenix monitoring interface provides several key indicators to track installation progress:</p>
+          <ul>
+            <li>
+              <strong>Phase Status:</strong> At the top of the screen, you can monitor which phases (Hypervisor or AOS) are currently active or pending completion</li>
+            <li>
+              <strong>Elapsed Time:</strong> Displays the total time elapsed since initiating the action from the Nutanix Installer menu</li>
+            <li>
+              <strong>Real-time Updates:</strong> Continuous status messages showing current operations and their progress</li>
+            <li>
+              <strong>Error Indicators:</strong> Immediate notification of any issues or failures during the process</li>
+          </ul>
+          <p>
+            <em>Example: The following screenshot shows the progress display for "Install, Configure Hypervisor and Install CVM (Wipes existing data)" action.</em>
+          </p>
+          <p>
+            <ac:image ac:width="900">
+              <ri:attachment ri:filename="image-2025-7-13_16-46-31.png"/>
+            </ac:image>
+          </p>
+          <h3>Completion and System Handover</h3>
+          <p>Upon successful completion of all selected actions, Phoenix will present a completion prompt that requires your attention:</p>
+          <ol>
+            <li>
+              <strong>Remove Media:</strong> First, physically disconnect the Phoenix ISO from your console or remove the boot media</li>
+            <li>
+              <strong>Confirm Reboot:</strong> Enter "Y" and press Return to boot the node into the hypervisor</li>
+            <li>
+              <strong>Alternative Option:</strong> Enter "N" to remain in the Phoenix shell for additional operations</li>
+          </ol>
+          <p>
+            <em>Example: Completion prompt after installing AHV 10.0.1 and AOS 7.0.1 with "Install, Configure Hypervisor and Install CVM (Wipes existing data)" action.</em>
+          </p>
+          <p>
+            <ac:image ac:width="900">
+              <ri:attachment ri:filename="image-2025-7-13_16-50-49.png"/>
+            </ac:image>
+          </p>
+          <ac:structured-macro ac:macro-id="490b8db1-92f9-45a5-93d7-d1c1d96bc4b9" ac:name="tip" ac:schema-version="1">
+            <ac:parameter ac:name="title">Alternative Navigation</ac:parameter>
+            <ac:rich-text-body>
+              <p>If you need to return to the Phoenix Shell without rebooting the system, you can press <strong>CTRL + D</strong> at any time during the completion prompt.</p>
+            </ac:rich-text-body>
+          </ac:structured-macro>
+        </ac:rich-text-body>
+      </ac:structured-macro>
+    </ac:layout-cell>
+  </ac:layout-section>
+  <ac:layout-section ac:type="single">
+    <ac:layout-cell>
+      <p>
+        <br/>
+      </p>
+      <p>
+        <ac:structured-macro ac:macro-id="36f0e7ff-345d-499e-855f-7aeb64858ec8" ac:name="macrosuite-button" ac:schema-version="1">
+          <ac:parameter ac:name="macroId">rC5a5Lc8KpDDv5TXp4bt-</ac:parameter>
+          <ac:parameter ac:name="data">JTdCJTIyYnV0dG9uVHlwZSUyMiUzQSUyMmljb25fcmlnaHQlMjIlMkMlMjJidXR0b25TaXplJTIyJTNBJTIybGFyZ2UlMjIlMkMlMjJidXR0b25UZXh0JTIyJTNBJTIyUHJvY2VlZCUyMHRvJTIwQ2hhcHRlciUyMDUlM0ElMjBJbnN0YWxsJTIwb3IlMjBSZXBhaXIlMjBDVk0lMjIlMkMlMjJidXR0b25SYWRpdXMlMjIlM0ExJTJDJTIyYnV0dG9uV2lkdGglMjIlM0EyMCUyQyUyMmJ1dHRvbkNvbG9yJTIyJTNBJTIyJTIzMDAwMDAwMDAlMjIlMkMlMjJidXR0b25Gb250Q29sb3IlMjIlM0ElMjIlMjMwMDY1ZmZmZiUyMiUyQyUyMmJ1dHRvbkJvcmRlckNvbG9yJTIyJTNBJTIyJTIzMDAwMDAwMDAlMjIlMkMlMjJidXR0b25MaW5rJTIyJTNBJTIyJTdCJTVDJTIyaWQlNUMlMjIlM0ElNUMlMjI0MzEzMjgyOTglNUMlMjIlMkMlNUMlMjJsaW5rJTVDJTIyJTNBJTVDJTIyJTJGeCUyRktveTFHUSU1QyUyMiUyQyU1QyUyMnRpdGxlJTVDJTIyJTNBJTVDJTIyRFJBRlQlMjAtJTIwUGhvZW5peCUzQSUyMEluc3RhbGwlMjBvciUyMFJlcGFpciUyMENWTSU1QyUyMiUyQyU1QyUyMnR5cGUlNUMlMjIlM0ElNUMlMjJwYWdlJTVDJTIyJTJDJTVDJTIyc291cmNlJTVDJTIyJTNBJTVDJTIycGFnZSU1QyUyMiU3RCUyMiUyQyUyMmJ1dHRvbk5ld1RhYiUyMiUzQSUyMnRydWUlMjIlMkMlMjJidXR0b25OZXdMaW5rJTIyJTNBJTIyJTIyJTJDJTIyYnV0dG9uSWNvbiUyMiUzQSUyMmJvb3RzdHJhcCUyRkFycm93UmlnaHRDaXJjbGUlMjIlMkMlMjJidXR0b25Ib3ZlckNvbG9yJTIyJTNBJTIydHJhbnNwYXJlbnQlMjIlMkMlMjJidXR0b25Cb3JkZXJIb3ZlckNvbG9yJTIyJTNBJTIyJTIzMDAwMDAwMDAlMjIlMkMlMjJidXR0b25Gb250SG92ZXJDb2xvciUyMiUzQSUyMiUyMzAwMDAwMDAwJTIyJTJDJTIyYnV0dG9uSWNvbkhvdmVyQ29sb3IlMjIlM0ElMjIlMjMwMDAwMDAwMCUyMiUyQyUyMmlzQnV0dG9uU2hhZG93T24lMjIlM0F0cnVlJTJDJTIyYnV0dG9uSWNvbkNvbG9yJTIyJTNBJTIyJTIzMDA2NWZmZmYlMjIlMkMlMjJidXR0b25XaWR0aERldGVjdGlvbiUyMiUzQTYwJTJDJTIyZW1vamlFbmFibGVkJTIyJTNBZmFsc2UlMkMlMjJlbW9qaSUyMiUzQSUyMiU3QiU3RCUyMiU3RA==</ac:parameter>
+        </ac:structured-macro>
+      </p>
+    </ac:layout-cell>
+  </ac:layout-section>
+</ac:layout>
