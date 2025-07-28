@@ -274,7 +274,7 @@ git add chapter1.xml
 git commit -m "Update chapter 1"
 
 # Style checker runs automatically
-🔍 Running TC Phoenix Documentation Style Checker...
+🔍 Running Documentation Style Checker...
 📝 Checking files:
   - chapter1.xml
 
@@ -390,7 +390,7 @@ This system implements comprehensive style guidelines from multiple official sou
 - **Nutanix Glossary** (approved terminology)
 - **Acronyms Reference** (first-use rules)
 - **Considerations Taxonomy** (content classification)
-- **TC Phoenix Internal Style Conventions** (project-specific standards)
+- **Internal Style Conventions** (project-specific standards)
 
 ## 🔮 Future Enhancements
 
@@ -435,7 +435,3 @@ To contribute improvements to the style checker:
 2. **Update the configuration** in `.styleguide.yaml`
 3. **Document new rules** in this README
 4. **Ensure backward compatibility** with existing documents
-
-## 📄 License
-
-This style checker is part of the TC Phoenix documentation project and follows the same licensing terms as the rest of the project.
